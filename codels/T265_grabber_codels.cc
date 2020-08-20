@@ -20,7 +20,7 @@ init_grabber(T265_ids *ids, const genom_context self)
   ids->I_left = new T265_vp_image;
   ids->I_right = new T265_vp_image;
   ids->poseref_M_sensor = new T265_vp_homogeneous_matrix;
-  ids->pose_data.pos._value.x = 2.;
+  ids->pose_data.pos._value.x = 0.;
   ids->pose_data.pos._value.y = 0.;
   ids->pose_data.pos._value.z = 0.;
 

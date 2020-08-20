@@ -1,5 +1,5 @@
 #include "acT265.h"
-
+#include "codels.h"
 #include "T265_c_types.h"
 
 
@@ -14,8 +14,8 @@
 genom_event
 init_detector(const genom_context self)
 {
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return T265_loop;
+
+  return T265_loop;
 }
 
 

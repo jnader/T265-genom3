@@ -106,7 +106,7 @@ This task will initialize grabbing mechanism used to retrieve data from T265 sen
 |===
 a|.Context
 [disc]
-  * Frequency 28.57142857142857 _Hz_
+  * Frequency 30.3030303030303 _Hz_
 |===
 
 This task is used to display images.
@@ -128,6 +128,20 @@ This task is used to refresh pose output port at 200Hz.
 
 '''
 
+[[undistort_images]]
+=== undistort_images
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Context
+[disc]
+  * Frequency 30.3030303030303 _Hz_
+|===
+
+Task for undistorting images.
+
+'''
+
 [[apriltag_detection]]
 === apriltag_detection
 
@@ -135,9 +149,23 @@ This task is used to refresh pose output port at 200Hz.
 |===
 a|.Context
 [disc]
-  * Frequency 20.0 _Hz_
+  * Frequency 30.3030303030303 _Hz_
 |===
 
 AprilTag detection.
+
+'''
+
+[[image_display]]
+=== image_display
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Context
+[disc]
+  * Frequency 30.3030303030303 _Hz_
+|===
+
+This task is used to display images.
 
 '''

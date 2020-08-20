@@ -14,12 +14,13 @@ component T265
     native realsense_grabber;
     native vp_image;
     native vp_homogeneous_matrix;
+    native vp_AprilTag_detector;
 
-    /* port out vp_image port_im_left; */
+    /* Output ports */
     port out or_pose_estimator::state odom_state;
 
     /* Constants */
-    const double period_image_ms = 33.3333;
+    const double period_image_ms = 33.333;
 
     ids
     {
@@ -44,6 +45,9 @@ component T265
 
         /* Image container */
         vp_image I_left, I_right;
+        vp_image I_left_undistorted, I_right_undistorted;
+
+        /*  */
     };
 
     task grabber
@@ -51,20 +55,6 @@ component T265
         doc "This task will initialize grabbing mechanism used to retrieve data from T265 sensor.";
 
         codel<start> init_grabber(out ::ids) yield ether;
-    };
-
-    task image_display
-    {
-        doc "This task is used to display images.";
-
-        period 35ms;
-
-        codel<start> init_display(in I_left, in I_right)
-            yield loop;
-        codel<loop> refresh_display(in I_left, in I_right)
-            yield pause::loop, stop;
-        codel<stop> stop_display(out rs_grabber, out I_left, out I_right)
-            yield ether;
     };
 
     task pose_port_refresh
@@ -81,11 +71,26 @@ component T265
             yield ether;
     };
 
+    task undistort_images
+    {
+        doc "Task for undistorting images.";
+
+        period 33ms;
+
+        codel<start> init_undist_images(in I_left, in I_right, in rs_grabber, out I_left_undistorted, out I_right_undistorted)
+            yield loop;
+        codel<loop>  undistort_images(in I_left, in I_right, out I_left_undistorted, out I_right_undistorted)
+            yield pause::loop, stop;
+        codel<stop>  stop_image_undistort(out I_left_undistorted, out I_right_undistorted)
+            yield ether;
+    };
+
     task apriltag_detection
     {
         doc "AprilTag detection.";
 
-        period 50ms;
+        period 33 ms;
+        delay 1 ms;
 
         codel<start> init_detector()
             yield loop;
@@ -94,4 +99,19 @@ component T265
         codel<stop>  kill_detector()
             yield ether;
     };
+
+    task image_display
+    {
+        doc "This task is used to display images.";
+
+        period 33ms;
+
+        codel<start> init_display(in I_left, in I_right, in I_left_undistorted, in I_right_undistorted)
+            yield loop;
+        codel<loop> refresh_display(in I_left, in I_right, in I_left_undistorted, in I_right_undistorted)
+            yield pause::loop, stop;
+        codel<stop> stop_display(out rs_grabber, out I_left, out I_right, out I_left_undistorted, out I_right_undistorted)
+            yield ether;
+    };
+
 };
