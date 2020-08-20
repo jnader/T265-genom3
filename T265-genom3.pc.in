@@ -1,0 +1,16 @@
+# pkg-config file for T265 interface and codels library
+#
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+datarootdir=@datarootdir@
+idldir=@datadir@/idl
+
+Name: T265-genom3
+Description: T265 interface and codels library
+Version: @PACKAGE_VERSION@
+Requires: openrobots2-idl >= 2.0, genom3 >= 2.99.30
+Cflags: -I${includedir} -I${idldir}
+Libs: -L${libdir} -lT265_codels
+Libs.private: @codels_requires_LIBS@

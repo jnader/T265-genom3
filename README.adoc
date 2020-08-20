@@ -1,0 +1,129 @@
+
+// This file was generated from T265.gen by the skeleton
+// template. Manual changes should be preserved, although they should
+// rather be added to the "doc" attributes of the genom objects defined in
+// T265.gen.
+
+= T265 component
+0.0
+:toc: left
+
+// fix default asciidoctor stylesheet issue #2407 and add hr clear rule
+ifdef::backend-html5[]
+[pass]
+++++
+<link rel="stylesheet" href="data:text/css,p{font-size: inherit !important}" >
+<link rel="stylesheet" href="data:text/css,hr{clear: both}" >
+++++
+endif::[]
+
+
+This component interfaces with Intel T265 Realsense device.
+
+
+== Ports
+
+
+[[odom_state]]
+=== odom_state (out)
+
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Data structure
+[disc]
+ * `struct ::or_pose_estimator::state` `odom_state`
+ ** `struct ::or::time::ts` `ts`
+ *** `long` `sec`
+ *** `long` `nsec`
+ ** `boolean` `intrinsic`
+ ** `optional< struct ::or::t3d::pos >` `pos`
+ *** `double` `x`
+ *** `double` `y`
+ *** `double` `z`
+ ** `optional< struct ::or::t3d::att >` `att`
+ *** `double` `qw`
+ *** `double` `qx`
+ *** `double` `qy`
+ *** `double` `qz`
+ ** `optional< struct ::or::t3d::vel >` `vel`
+ *** `double` `vx`
+ *** `double` `vy`
+ *** `double` `vz`
+ ** `optional< struct ::or::t3d::avel >` `avel`
+ *** `double` `wx`
+ *** `double` `wy`
+ *** `double` `wz`
+ ** `optional< struct ::or::t3d::acc >` `acc`
+ *** `double` `ax`
+ *** `double` `ay`
+ *** `double` `az`
+ ** `optional< struct ::or::t3d::aacc >` `aacc`
+ *** `double` `awx`
+ *** `double` `awy`
+ *** `double` `awz`
+ ** `optional< struct ::or::t3d::pos_cov >` `pos_cov`
+ *** `double` `cov[6]`
+ ** `optional< struct ::or::t3d::att_cov >` `att_cov`
+ *** `double` `cov[10]`
+ ** `optional< struct ::or::t3d::att_pos_cov >` `att_pos_cov`
+ *** `double` `cov[12]`
+ ** `optional< struct ::or::t3d::vel_cov >` `vel_cov`
+ *** `double` `cov[6]`
+ ** `optional< struct ::or::t3d::avel_cov >` `avel_cov`
+ *** `double` `cov[6]`
+ ** `optional< struct ::or::t3d::acc_cov >` `acc_cov`
+ *** `double` `cov[6]`
+ ** `optional< struct ::or::t3d::aacc_cov >` `aacc_cov`
+ *** `double` `cov[6]`
+
+|===
+
+'''
+
+== Services
+
+== Tasks
+
+[[grabber]]
+=== grabber
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Context
+[disc]
+  * Free running
+|===
+
+This task will initialize grabbing mechanism used to retrieve data from T265 sensor.
+
+'''
+
+[[image_display]]
+=== image_display
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Context
+[disc]
+  * Frequency 28.57142857142857 _Hz_
+|===
+
+This task is used to display images.
+
+'''
+
+[[pose_port_refresh]]
+=== pose_port_refresh
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Context
+[disc]
+  * Frequency 200.0 _Hz_
+* Updates port `<<odom_state>>`
+|===
+
+This task is used to refresh pose output port at 200Hz.
+
+'''

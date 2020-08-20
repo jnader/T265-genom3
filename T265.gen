@@ -1,0 +1,77 @@
+#pragma require "openrobots2-idl >= 2.0"
+
+#include "or/pose/pose_estimator.gen"
+#include "or/pose/rigid_body.gen"
+
+component T265
+{
+    version "0.0";
+    doc "This component interfaces with Intel T265 Realsense device.";
+    require   "genom3 >= 2.99.30";
+    codels-requires "visp >= 3.3.1";
+
+    /* NATIVE TYPES */
+    native realsense_grabber;
+    native vp_image;
+    native vp_homogeneous_matrix;
+
+    /* port out vp_image port_im_left; */
+    port out or_pose_estimator::state odom_state;
+
+    ids
+    {
+        /* Grabber container */
+        realsense_grabber rs_grabber;
+
+        /* Frame number */
+        long frame_nb;
+
+        /* Odometry data containers */
+        or_pose_estimator::state pose_data;
+        vp_homogeneous_matrix poseref_M_sensor;
+
+        /* Gyro angular velocity container */
+        or::t3d::avel imu_gyro_data;
+
+        /* Accelerometer linear acceleration */
+        or::t3d::acc imu_accel_data;
+
+        /* Image container */
+        vp_image I_left, I_right;
+    };
+
+    task grabber
+    {
+        doc "This task will initialize grabbing mechanism used to retrieve data from T265 sensor.";
+
+        codel<start> init_grabber(out ::ids) yield ether;
+    };
+
+    task image_display
+    {
+        doc "This task is used to display images.";
+
+        period 35ms;
+
+        codel<start> init_display(in I_left, in I_right)
+            yield loop;
+        codel<loop> refresh_display(in I_left, in I_right)
+            yield pause::loop, stop;
+        codel<stop> stop_display(out rs_grabber, out I_left, out I_right)
+            yield ether;
+    };
+
+    task pose_port_refresh
+    {
+        doc "This task is used to refresh pose output port at 200Hz.";
+
+        period 5ms;
+
+        codel<start> init_port(out odom_state)
+            yield loop;
+        codel<loop> refresh_pose(in rs_grabber, in pose_data, in poseref_M_sensor, out odom_state)
+            yield pause::loop, stop;
+        codel<stop> stop_pose_display()
+            yield ether;
+    };
+};
