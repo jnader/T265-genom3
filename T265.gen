@@ -26,6 +26,9 @@ component T265
         /* Frame number */
         long frame_nb;
 
+        /* Image and pose counts */
+        long image_count, pose_count;
+
         /* Odometry data containers */
         or_pose_estimator::state pose_data;
         vp_homogeneous_matrix poseref_M_sensor;
@@ -72,6 +75,20 @@ component T265
         codel<loop> refresh_pose(in rs_grabber, in pose_data, in poseref_M_sensor, out odom_state)
             yield pause::loop, stop;
         codel<stop> stop_pose_display()
+            yield ether;
+    };
+
+    task test_timing
+    {
+        doc "Task to test frames timing and loss.";
+
+        period 1s;
+
+        codel<start> start_codel()
+            yield loop;
+        codel<loop>  loop_codel(in image_count, in pose_count)
+            yield pause::loop;
+        codel<stop> stop_codel()
             yield ether;
     };
 };

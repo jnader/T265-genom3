@@ -51,6 +51,9 @@ init_grabber(T265_ids *ids, const genom_context self)
       memcpy(ids->I_right->I.bitmap, right_frame.get_data(), size);
       ids->I_right->timestamp = timestamp;
 
+      ids->image_count++; // Images received succesfully.
+
+      // In case there's a pose in the frameset.
       rs2_pose pose_data = fs.get_pose_frame().get_pose_data();
       vpTranslationVector ctw(static_cast<double>(pose_data.translation.x),
                               static_cast<double>(pose_data.translation.y),
@@ -96,6 +99,7 @@ init_grabber(T265_ids *ids, const genom_context self)
       ids->pose_data.aacc._value.awy = static_cast<double>(pose_data.angular_acceleration.y);
       ids->pose_data.aacc._value.awz = static_cast<double>(pose_data.angular_acceleration.z);
 
+      ids->pose_count++;
       // confidence = pose_data.tracker_confidence;
     }
     else
@@ -146,6 +150,8 @@ init_grabber(T265_ids *ids, const genom_context self)
       ids->pose_data.aacc._value.awx = static_cast<double>(pose_data.angular_acceleration.x);
       ids->pose_data.aacc._value.awy = static_cast<double>(pose_data.angular_acceleration.y);
       ids->pose_data.aacc._value.awz = static_cast<double>(pose_data.angular_acceleration.z);
+
+      ids->pose_count++;
 
       // confidence = pose_data.tracker_confidence;
     }

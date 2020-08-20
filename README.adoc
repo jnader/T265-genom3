@@ -127,3 +127,17 @@ a|.Context
 This task is used to refresh pose output port at 200Hz.
 
 '''
+
+[[test_timing]]
+=== test_timing
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Context
+[disc]
+  * Frequency 1 _Hz_
+|===
+
+Task to test frames timing and loss.
+
+'''
