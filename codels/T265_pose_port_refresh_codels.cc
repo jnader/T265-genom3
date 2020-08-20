@@ -44,8 +44,6 @@ refresh_pose(const T265_realsense_grabber *rs_grabber,
 {
   double start = vpTime::measureTimeMs();
 
-  // if(rs_grabber != NULL)
-  // {
   or_pose_estimator_state *s = odom_state->data(self);
 
   s->pos._present = true;
@@ -78,18 +76,10 @@ refresh_pose(const T265_realsense_grabber *rs_grabber,
   s->aacc._value.awy = pose_data->aacc._value.awy; 
   s->aacc._value.awz = pose_data->aacc._value.awz;
 
-  if(!odom_state->write(self))
-    // std::cout << vpTime::measureTimeMs() - start << std::endl;
-    ;
+  if(odom_state->write(self))
+    std::cout << "Error" << std::endl;
 
   return T265_pause_loop;
-  // }
-
-  // else
-  // {
-  //   return T265_stop;
-  // }
-  
 }
 
 

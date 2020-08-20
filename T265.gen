@@ -77,18 +77,4 @@ component T265
         codel<stop> stop_pose_display()
             yield ether;
     };
-
-    task test_timing
-    {
-        doc "Task to test frames timing and loss.";
-
-        period 1s;
-
-        codel<start> start_codel()
-            yield loop;
-        codel<loop>  loop_codel(in image_count, in pose_count)
-            yield pause::loop;
-        codel<stop> stop_codel()
-            yield ether;
-    };
 };
