@@ -5,7 +5,7 @@ libT265_codels_la_SOURCES +=	T265_codels.cc
 libT265_codels_la_SOURCES +=	T265_grabber_codels.cc
 libT265_codels_la_SOURCES +=	T265_image_display_codels.cc
 libT265_codels_la_SOURCES +=	T265_pose_port_refresh_codels.cc
-libT265_codels_la_SOURCES +=	T265_test_timing_codels.cc
+libT265_codels_la_SOURCES +=	T265_apriltag_detection_codels.cc
 
 libT265_codels_la_CPPFLAGS =	$(requires_CFLAGS)
 libT265_codels_la_LIBADD   =	$(requires_LIBS)

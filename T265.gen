@@ -18,6 +18,9 @@ component T265
     /* port out vp_image port_im_left; */
     port out or_pose_estimator::state odom_state;
 
+    /* Constants */
+    const double period_image_ms = 33.3333;
+
     ids
     {
         /* Grabber container */
@@ -75,6 +78,20 @@ component T265
         codel<loop> refresh_pose(in rs_grabber, in pose_data, in poseref_M_sensor, out odom_state)
             yield pause::loop, stop;
         codel<stop> stop_pose_display()
+            yield ether;
+    };
+
+    task apriltag_detection
+    {
+        doc "AprilTag detection.";
+
+        period 50ms;
+
+        codel<start> init_detector()
+            yield loop;
+        codel<loop>  loop_detector()
+            yield pause::loop, stop;
+        codel<stop>  kill_detector()
             yield ether;
     };
 };
