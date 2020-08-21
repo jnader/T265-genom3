@@ -3,10 +3,10 @@ lib_LTLIBRARIES = libT265_codels.la
 libT265_codels_la_SOURCES  =	T265_c_types.h
 libT265_codels_la_SOURCES +=	T265_codels.cc
 libT265_codels_la_SOURCES +=	T265_grabber_codels.cc
-libT265_codels_la_SOURCES +=	T265_image_display_codels.cc
 libT265_codels_la_SOURCES +=	T265_pose_port_refresh_codels.cc
 libT265_codels_la_SOURCES +=	T265_undistort_images_codels.cc
 libT265_codels_la_SOURCES +=	T265_apriltag_detection_codels.cc
+libT265_codels_la_SOURCES +=	T265_image_display_codels.cc
 
 libT265_codels_la_CPPFLAGS =	$(requires_CFLAGS)
 libT265_codels_la_LIBADD   =	$(requires_LIBS)

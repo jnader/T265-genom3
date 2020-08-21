@@ -1,6 +1,7 @@
 #ifndef _CODELS_H
 #define _CODELS_H
 
+#include <visp3/core/vpCameraParameters.h>
 #include <visp3/gui/vpDisplayX.h>
 #include <visp3/sensor/vpRealSense2.h>
 #include <visp3/detection/vpDetectorAprilTag.h>

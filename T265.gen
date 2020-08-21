@@ -22,6 +22,14 @@ component T265
     /* Constants */
     const double period_image_ms = 33.333;
 
+    /* Data structures */
+    struct point
+    {
+        double u, v;
+    };
+
+    typedef sequence<point, 4> corners;
+
     ids
     {
         /* Grabber container */
@@ -47,7 +55,15 @@ component T265
         vp_image I_left, I_right;
         vp_image I_left_undistorted, I_right_undistorted;
 
-        /*  */
+        /* AprilTag detection parameters */
+        double tag_size;
+        double quad_decimate;
+
+        /* AprilTag corners */
+        optional<corners> tag_corners;
+
+        /* AprilTag detected pose */
+        vp_homogeneous_matrix tag_pose;
     };
 
     task grabber
@@ -92,9 +108,9 @@ component T265
         period 33 ms;
         delay 1 ms;
 
-        codel<start> init_detector()
+        codel<start> init_detector(in rs_grabber, in tag_size, in quad_decimate, out tag_corners)
             yield loop;
-        codel<loop>  loop_detector()
+        codel<loop>  loop_detector(in I_left_undistorted)
             yield pause::loop, stop;
         codel<stop>  kill_detector()
             yield ether;

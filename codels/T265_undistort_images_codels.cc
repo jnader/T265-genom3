@@ -5,8 +5,8 @@
 
 /* --- Task undistort_images -------------------------------------------- */
 
-vpArray2D<int> mapU_left, mapV_left;
-vpArray2D<float> mapDu_left, mapDv_left;
+vpArray2D<int> mapU_left, mapV_left, mapU_right, mapV_right;
+vpArray2D<float> mapDu_left, mapDv_left, mapDu_right, mapDv_right;
 vpCameraParameters cam_left, cam_right;
 
 /** Codel init_undist_images of task undistort_images.
@@ -25,17 +25,14 @@ init_undist_images(const T265_vp_image *I_left,
   (*I_left_undistorted)  = new T265_vp_image;
   (*I_right_undistorted) = new T265_vp_image;
 
-  std::cout << "hi\n";
-
   (*I_left_undistorted)->I.resize(I_left->I.getHeight(), I_left->I.getWidth());
   (*I_right_undistorted)->I.resize(I_right->I.getHeight(), I_right->I.getWidth());
-
-  std::cout << "hi\n";
 
   cam_left  = rs_grabber->g.getCameraParameters(RS2_STREAM_FISHEYE, vpCameraParameters::ProjWithKannalaBrandtDistortion, 1);
   cam_right = rs_grabber->g.getCameraParameters(RS2_STREAM_FISHEYE, vpCameraParameters::ProjWithKannalaBrandtDistortion, 2);
 
   vpImageTools::initUndistortMap(cam_left, I_left->I.getWidth(), I_left->I.getHeight(), mapU_left, mapV_left, mapDu_left, mapDv_left);
+  vpImageTools::initUndistortMap(cam_right, I_right->I.getWidth(), I_right->I.getHeight(), mapU_right, mapV_right, mapDu_right, mapDv_right);
 
   return T265_loop;
 }
@@ -54,6 +51,7 @@ undistort_images(const T265_vp_image *I_left,
                  const genom_context self)
 {
   vpImageTools::undistort(I_left->I, mapU_left, mapV_left, mapDu_left, mapDv_left, (*I_left_undistorted)->I);
+  vpImageTools::undistort(I_right->I, mapU_right, mapV_right, mapDu_right, mapDv_right, (*I_right_undistorted)->I);
 
   return T265_pause_loop;
 }

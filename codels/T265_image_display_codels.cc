@@ -7,6 +7,7 @@
 vpDisplayX display_left;  // Left image.
 vpDisplayX display_right; // Right image.
 vpDisplayX display_left_undist; // Left undistorted image.
+vpDisplayX display_right_undist; // Right undistorted image.
 
 /** Codel init_display of task image_display.
  *
@@ -20,9 +21,10 @@ init_display(const T265_vp_image *I_left, const T265_vp_image *I_right,
              const genom_context self)
 {
   display_left.init(const_cast<vpImage<unsigned char>&>(I_left->I), 10, 10, "Left image");
-  display_right.init(const_cast<vpImage<unsigned char>&>(I_right->I), static_cast<int>(I_left->I.getWidth()/2) + 80, 10, "Right image"); // Right
+  display_right.init(const_cast<vpImage<unsigned char>&>(I_right->I), static_cast<int>(I_left->I.getWidth()) + 80, 10, "Right image"); // Right
 
   display_left_undist.init(const_cast<vpImage<unsigned char>&>(I_left_undistorted->I), 2*static_cast<int>(I_left->I.getWidth()/2), 10, "Left undistorted image");
+  display_right_undist.init(const_cast<vpImage<unsigned char>&>(I_right_undistorted->I), 3*static_cast<int>(I_right->I.getWidth()/2), 10, "Right undistorted image");
 
   return T265_loop;
 }
@@ -44,6 +46,7 @@ refresh_display(const T265_vp_image *I_left,
   vpDisplay::display(I_right->I);
 
   vpDisplay::display(I_left_undistorted->I);
+  vpDisplay::display(I_right_undistorted->I);
 
   vpDisplay::displayText(I_left->I, 30, 30, "Click to quit", vpColor::red);
   vpDisplay::displayText(I_right->I, 30, 30, "Click to quit", vpColor::red);
@@ -54,6 +57,7 @@ refresh_display(const T265_vp_image *I_left,
   vpDisplay::flush(I_left->I);
   vpDisplay::flush(I_right->I);
   vpDisplay::flush(I_left_undistorted->I);
+  vpDisplay::flush(I_right_undistorted->I);
 
   return T265_pause_loop;
 }
