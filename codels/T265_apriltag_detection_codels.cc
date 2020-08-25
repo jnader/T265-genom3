@@ -15,6 +15,7 @@ vpImagePoint center;
 vpTranslationVector cto;
 vpQuaternionVector cqo;
 
+T265_tags *tags;
 
 long tmp_sec;
 double tmp_nsec;
@@ -26,7 +27,8 @@ double tmp_nsec;
  */
 genom_event
 init_detector(const T265_realsense_grabber *rs_grabber,
-              double *tag_size, sequence_apriltag_tag *detected_tags,
+              double *tag_size, T265_tags *detected_tags,
+              const T265_port_tags *port_tags,
               const genom_context self)
 {
   vpCameraParameters cam_left = rs_grabber->g.getCameraParameters(RS2_STREAM_FISHEYE, vpCameraParameters::ProjWithKannalaBrandtDistortion, 1);
@@ -42,8 +44,21 @@ init_detector(const T265_realsense_grabber *rs_grabber,
 
   *tag_size = 0.08; // Default value for tag size.
 
+  // IDS
+  //
   detected_tags->_buffer = NULL;
   detected_tags->_length = 0;
+  //
+
+  // OUTPORT
+  //
+  tags = port_tags->data(self);
+  tags->_buffer = NULL;
+  tags->_length = 0;
+
+  if(port_tags->write(self))
+    std::cout << "Error" << std::endl;
+  //
 
   return T265_loop;
 }
@@ -56,7 +71,8 @@ init_detector(const T265_realsense_grabber *rs_grabber,
  */
 genom_event
 loop_detector(const T265_vp_image *I_left_undistorted, double tag_size,
-              sequence_apriltag_tag *detected_tags,
+              T265_tags *detected_tags,
+              const T265_port_tags *port_tags,
               const genom_context self)
 {
   cMo_vec.clear();
@@ -67,9 +83,12 @@ loop_detector(const T265_vp_image *I_left_undistorted, double tag_size,
   {
     if(detected_tags->_length != 0)
     {
+      // IDS
+      //
       detected_tags->_maximum = 0;
       detected_tags->_length = 0;
       detected_tags->_buffer = NULL;
+      //
     }
   }
 
@@ -77,8 +96,6 @@ loop_detector(const T265_vp_image *I_left_undistorted, double tag_size,
   {
     if(detected_tags->_length != 0) // Releasing already existing buffer.
     {
-      // for(int i = 0; i < detected_tags->_length; i++)
-      //   delete detected_tags->_buffer[i].message._value;
       delete [] detected_tags->_buffer;
       detected_tags->_buffer = NULL;
     }
@@ -139,7 +156,14 @@ loop_detector(const T265_vp_image *I_left_undistorted, double tag_size,
     }
   }
 
-  // std::cout << cMo_vec.size() << " " << detected_tags->_length << " " << detected_tags->_maximum << std::endl;
+  // OUTPORT
+  //
+  tags = port_tags->data(self); // Is it necessary to ready ?
+  *tags = *detected_tags;
+
+  if(port_tags->write(self))
+    std::cout << "Error" << std::endl;
+  //
 
   return T265_pause_loop;
 }
@@ -151,7 +175,8 @@ loop_detector(const T265_vp_image *I_left_undistorted, double tag_size,
  * Yields to T265_ether.
  */
 genom_event
-kill_detector(sequence_apriltag_tag *detected_tags,
+kill_detector(T265_tags *detected_tags,
+              const T265_port_tags *port_tags,
               const genom_context self)
 {
   detector = NULL;
