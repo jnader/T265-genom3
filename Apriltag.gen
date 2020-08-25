@@ -1,0 +1,50 @@
+/*
+ * Copyright (c) 2012-2015,2018 LAAS/CNRS
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without  fee is hereby granted, provided  that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH  REGARD  TO  THIS SOFTWARE  INCLUDING  ALL  IMPLIED  WARRANTIES  OF
+ * MERCHANTABILITY AND  FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT,  INDIRECT, OR CONSEQUENTIAL  DAMAGES OR ANY DAMAGES
+ * WHATSOEVER  RESULTING FROM LOSS  OF USE, DATA OR PROFITS,  WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER  TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ *                                           Anthony Mallet on Fri Sep 28 2012
+ */
+#ifndef APRILTAG
+#define APRILTAG
+
+#include "or/time/time.idl"
+#include "or/pose/t3d.idl"
+
+/* Data structures */
+struct point
+{
+    double u, v;
+};
+
+typedef point corners[4];
+
+interface apriltag {
+
+  /* Detected AprilTag parameters */
+  struct tag {
+    or::time::ts ts;	/* timestamp of the image */
+    short id;
+
+    optional<or::t3d::pos> pos;		/* position */
+    optional<or::t3d::att> att;		/* orientation */
+
+    optional<point> center;        /* Tag's center */
+
+    optional<corners> corners_pos;  /* Tag's corners position */
+    optional<double> area;          /* Tag's area */
+    optional<string<128> > message;       /* Tag's message */
+  };
+};
+
+#endif /* APRILTAG */

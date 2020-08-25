@@ -2,7 +2,7 @@ ACLOCAL_AMFLAGS=	-I autoconf
 
 # IDL source files
 idldir=		$(datadir)/idl/T265
-nobase_dist_idl_DATA= T265.gen
+nobase_dist_idl_DATA= T265.gen Apriltag.gen
 
 pkgconfigdir=	$(libdir)/pkgconfig
 pkgconfig_DATA=
