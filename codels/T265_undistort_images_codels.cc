@@ -53,6 +53,9 @@ undistort_images(const T265_vp_image *I_left,
   vpImageTools::undistort(I_left->I, mapU_left, mapV_left, mapDu_left, mapDv_left, (*I_left_undistorted)->I);
   vpImageTools::undistort(I_right->I, mapU_right, mapV_right, mapDu_right, mapDv_right, (*I_right_undistorted)->I);
 
+  (*I_left_undistorted)->timestamp = I_left->timestamp;
+  (*I_right_undistorted)->timestamp = I_right->timestamp;
+
   return T265_pause_loop;
 }
 
