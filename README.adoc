@@ -81,6 +81,41 @@ a|.Data structure
 
 '''
 
+[[port_tags]]
+=== port_tags (out)
+
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Data structure
+[disc]
+ * `sequence< struct ::apriltag::tag >` `port_tags`
+ ** `struct ::or::time::ts` `ts`
+ *** `long` `sec`
+ *** `long` `nsec`
+ ** `short` `id`
+ ** `optional< struct ::or::t3d::pos >` `pos`
+ *** `double` `x`
+ *** `double` `y`
+ *** `double` `z`
+ ** `optional< struct ::or::t3d::att >` `att`
+ *** `double` `qw`
+ *** `double` `qx`
+ *** `double` `qy`
+ *** `double` `qz`
+ ** `optional< struct ::point >` `center`
+ *** `double` `u`
+ *** `double` `v`
+ ** `struct ::point` `corners_pos[4]`
+ *** `double` `u`
+ *** `double` `v`
+ ** `optional< double >` `area`
+ ** `optional< string<128> >` `message`
+
+|===
+
+'''
+
 == Services
 
 == Tasks
@@ -150,6 +185,7 @@ Task for undistorting images.
 a|.Context
 [disc]
   * Frequency 30.3030303030303 _Hz_
+* Updates port `<<port_tags>>`
 |===
 
 AprilTag detection.
