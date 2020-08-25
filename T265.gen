@@ -17,19 +17,14 @@ component T265
     native vp_homogeneous_matrix;
     native vp_AprilTag_detector;
 
+    typedef sequence<apriltag::tag> tags;
+
     /* Output ports */
     port out or_pose_estimator::state odom_state;
+    port out tags port_tags;
 
     /* Constants */
     const double period_image_ms = 33.333;
-
-    /* Data structures */
-    /*struct point */
-    /*{ */
-    /*    double u, v; */
-    /*}; */
-
-    typedef sequence<point, 4> corners;
 
     ids
     {
@@ -61,13 +56,7 @@ component T265
         double quad_decimate;
 
         /* Detected AprilTags container */
-        sequence<apriltag::tag> detected_tags;
-
-        /* AprilTag corners */
-/*      optional<corners> tag_corners; */
-
-        /* AprilTag detected pose */
-/*        vp_homogeneous_matrix tag_pose; */
+        tags detected_tags;
     };
 
     task grabber
@@ -112,11 +101,11 @@ component T265
         period 33 ms;
         delay 1 ms;
 
-        codel<start> init_detector(in rs_grabber, out tag_size, out detected_tags)
+        codel<start> init_detector(in rs_grabber, out tag_size, out detected_tags, out port_tags)
             yield loop;
-        codel<loop>  loop_detector(in I_left_undistorted, in tag_size, out detected_tags)
+        codel<loop>  loop_detector(in I_left_undistorted, in tag_size, out detected_tags, out port_tags)
             yield pause::loop, stop;
-        codel<stop>  kill_detector(out detected_tags)
+        codel<stop>  kill_detector(out detected_tags, out port_tags)
             yield ether;
     };
 
