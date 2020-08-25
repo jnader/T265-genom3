@@ -2,6 +2,7 @@
 
 #include "or/pose/pose_estimator.gen"
 #include "or/pose/rigid_body.gen"
+#include "Apriltag.gen"
 
 component T265
 {
@@ -23,10 +24,10 @@ component T265
     const double period_image_ms = 33.333;
 
     /* Data structures */
-    struct point
-    {
-        double u, v;
-    };
+    /*struct point */
+    /*{ */
+    /*    double u, v; */
+    /*}; */
 
     typedef sequence<point, 4> corners;
 
@@ -59,11 +60,14 @@ component T265
         double tag_size;
         double quad_decimate;
 
+        /* Detected AprilTags container */
+        sequence<apriltag::tag> detected_tags;
+
         /* AprilTag corners */
-        optional<corners> tag_corners;
+/*      optional<corners> tag_corners; */
 
         /* AprilTag detected pose */
-        vp_homogeneous_matrix tag_pose;
+/*        vp_homogeneous_matrix tag_pose; */
     };
 
     task grabber
@@ -108,11 +112,11 @@ component T265
         period 33 ms;
         delay 1 ms;
 
-        codel<start> init_detector(in rs_grabber, in tag_size, in quad_decimate, out tag_corners)
+        codel<start> init_detector(in rs_grabber, out tag_size, out detected_tags)
             yield loop;
-        codel<loop>  loop_detector(in I_left_undistorted)
+        codel<loop>  loop_detector(in I_left_undistorted, in tag_size, out detected_tags)
             yield pause::loop, stop;
-        codel<stop>  kill_detector()
+        codel<stop>  kill_detector(out detected_tags)
             yield ether;
     };
 
@@ -122,9 +126,9 @@ component T265
 
         period 33ms;
 
-        codel<start> init_display(in I_left, in I_right, in I_left_undistorted, in I_right_undistorted)
+        codel<start> init_display(in I_left, in I_right, in I_left_undistorted, in I_right_undistorted, in rs_grabber)
             yield loop;
-        codel<loop> refresh_display(in I_left, in I_right, in I_left_undistorted, in I_right_undistorted)
+        codel<loop> refresh_display(in I_left, in I_right, in I_left_undistorted, in I_right_undistorted, in detected_tags)
             yield pause::loop, stop;
         codel<stop> stop_display(out rs_grabber, out I_left, out I_right, out I_left_undistorted, out I_right_undistorted)
             yield ether;
