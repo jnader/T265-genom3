@@ -51,7 +51,7 @@ refresh_display(const T265_vp_image *I_left,
                 const T265_vp_image *I_right,
                 const T265_vp_image *I_left_undistorted,
                 const T265_vp_image *I_right_undistorted,
-                const sequence_apriltag_tag *detected_tags,
+                const T265_tags *detected_tags,
                 const genom_context self)
 {
   vpDisplay::display(I_left->I);
