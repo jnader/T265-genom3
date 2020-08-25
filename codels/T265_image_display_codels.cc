@@ -9,6 +9,12 @@ vpDisplayX display_right; // Right image.
 vpDisplayX display_left_undist; // Left undistorted image.
 vpDisplayX display_right_undist; // Right undistorted image.
 
+vpImagePoint tag_center;
+vpImagePoint tag_corner;
+vpHomogeneousMatrix cMo;
+
+vpCameraParameters left_cam_undistort;
+
 /** Codel init_display of task image_display.
  *
  * Triggered by T265_start.
@@ -18,6 +24,7 @@ genom_event
 init_display(const T265_vp_image *I_left, const T265_vp_image *I_right,
              const T265_vp_image *I_left_undistorted,
              const T265_vp_image *I_right_undistorted,
+             const T265_realsense_grabber *rs_grabber,
              const genom_context self)
 {
   display_left.init(const_cast<vpImage<unsigned char>&>(I_left->I), 10, 10, "Left image");
@@ -25,6 +32,10 @@ init_display(const T265_vp_image *I_left, const T265_vp_image *I_right,
 
   display_left_undist.init(const_cast<vpImage<unsigned char>&>(I_left_undistorted->I), 2*static_cast<int>(I_left->I.getWidth()/2), 10, "Left undistorted image");
   display_right_undist.init(const_cast<vpImage<unsigned char>&>(I_right_undistorted->I), 3*static_cast<int>(I_right->I.getWidth()/2), 10, "Right undistorted image");
+
+  // cam_undistort used for frame display.
+  vpCameraParameters cam_left = rs_grabber->g.getCameraParameters(RS2_STREAM_FISHEYE, vpCameraParameters::ProjWithKannalaBrandtDistortion, 1);
+  left_cam_undistort.initPersProjWithoutDistortion(cam_left.get_px(), cam_left.get_py(), cam_left.get_u0(), cam_left.get_v0());
 
   return T265_loop;
 }
@@ -40,6 +51,7 @@ refresh_display(const T265_vp_image *I_left,
                 const T265_vp_image *I_right,
                 const T265_vp_image *I_left_undistorted,
                 const T265_vp_image *I_right_undistorted,
+                const sequence_apriltag_tag *detected_tags,
                 const genom_context self)
 {
   vpDisplay::display(I_left->I);
@@ -51,9 +63,35 @@ refresh_display(const T265_vp_image *I_left,
   vpDisplay::displayText(I_left->I, 30, 30, "Click to quit", vpColor::red);
   vpDisplay::displayText(I_right->I, 30, 30, "Click to quit", vpColor::red);
 
-  if (vpDisplay::getClick(I_left->I, false) || vpDisplay::getClick(I_right->I, false)) {
+  if(detected_tags->_buffer != NULL) // Displaying AprilTag centers, corners, pose and message.
+  {
+    for(int i = 0; i < detected_tags->_maximum; i++)
+    {
+      // Display center.
+      tag_center = vpImagePoint(detected_tags->_buffer[i].center._value.u, detected_tags->_buffer[i].center._value.v);
+      vpDisplay::displayCross(I_left_undistorted->I, tag_center, 10, vpColor::red, 5);
+
+      // Display corners.
+      for(int j = 0; j < 4; j++)
+      {
+        vpDisplay::displayCross(I_left_undistorted->I, vpImagePoint(detected_tags->_buffer[i].corners_pos._value[j].u,detected_tags->_buffer[i].corners_pos._value[j].v), 20, vpColor::green, 2);
+      }
+
+      // Display pose.
+      cMo.buildFrom(vpTranslationVector(detected_tags->_buffer[i].pos._value.x,detected_tags->_buffer[i].pos._value.y,detected_tags->_buffer[i].pos._value.z),
+                    vpQuaternionVector(detected_tags->_buffer[i].att._value.qx,detected_tags->_buffer[i].att._value.qy,detected_tags->_buffer[i].att._value.qz,detected_tags->_buffer[i].att._value.qw));
+      vpDisplay::displayFrame(I_left_undistorted->I, cMo, left_cam_undistort, 0.08);
+
+      // Display message.
+      vpDisplay::displayText(I_left_undistorted->I, tag_center.get_i(), tag_center.get_j(), detected_tags->_buffer[i].message._value, vpColor::green);
+    }
+  }
+
+  if (vpDisplay::getClick(I_left->I, false) || vpDisplay::getClick(I_right->I, false) ||
+      vpDisplay::getClick(I_left_undistorted->I, false) || vpDisplay::getClick(I_right_undistorted->I, false)) {
       return T265_stop;
   }
+
   vpDisplay::flush(I_left->I);
   vpDisplay::flush(I_right->I);
   vpDisplay::flush(I_left_undistorted->I);
