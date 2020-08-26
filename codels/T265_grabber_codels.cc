@@ -6,7 +6,8 @@
 
 /* --- Task grabber ----------------------------------------------------- */
 
-double timestamp;
+long sec;
+double timestamp, nsec;
 
 /** Codel init_grabber of task grabber.
  *
@@ -64,6 +65,12 @@ init_grabber(T265_ids *ids, const genom_context self)
                              static_cast<double>(pose_data.rotation.z),
                              static_cast<double>(pose_data.rotation.w));
 
+      // Timestamp.
+      sec    = timestamp / 1000;
+      nsec = ((long)timestamp % 1000) * 1000000;
+      ids->pose_data.ts.sec  = static_cast<int32_t>(sec);
+      ids->pose_data.ts.nsec = static_cast<int32_t>(nsec);
+
       ids->pose_data.pos._present = true;
       ids->pose_data.pos._value.x = ctw[0];
       ids->pose_data.pos._value.y = ctw[1];
@@ -115,6 +122,12 @@ init_grabber(T265_ids *ids, const genom_context self)
                              static_cast<double>(pose_data.rotation.y),
                              static_cast<double>(pose_data.rotation.z),
                              static_cast<double>(pose_data.rotation.w));
+
+      // Timestamp.
+      sec    = timestamp / 1000;
+      nsec = ((long)timestamp % 1000) * 1000000;
+      ids->pose_data.ts.sec  = static_cast<int32_t>(sec);
+      ids->pose_data.ts.nsec = static_cast<int32_t>(nsec);
 
       ids->pose_data.pos._present = true;
       ids->pose_data.pos._value.x = ctw[0];
