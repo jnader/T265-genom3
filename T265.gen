@@ -57,8 +57,27 @@ component T265
 
         /* Detected AprilTags container */
         tags detected_tags;
+
+        /* Variables */
+        boolean is_publishing;
     };
 
+/******************** FUNCTIONS ********************/
+    function start_publishing()
+    {
+        doc "Start retreiving data from T265 sensor. (To be used after pause_publish)";
+
+        codel start_publish(out is_publishing);
+    };
+
+    function pause_publishing()
+    {
+        doc "Pauses retreiving data from T265 sensor.";
+
+        codel pause_publish(out is_publishing);
+    };
+
+/******************** TASKS ********************/
     task grabber
     {
         doc "This task will initialize grabbing mechanism used to retrieve data from T265 sensor.";
@@ -74,7 +93,7 @@ component T265
 
         codel<start> init_port(out odom_state)
             yield loop;
-        codel<loop> refresh_pose(in rs_grabber, in pose_data, in poseref_M_sensor, out odom_state)
+        codel<loop> refresh_pose(in is_publishing, in rs_grabber, in pose_data, in poseref_M_sensor, out odom_state)
             yield pause::loop, stop;
         codel<stop> stop_pose_display()
             yield ether;
@@ -88,7 +107,7 @@ component T265
 
         codel<start> init_undist_images(in I_left, in I_right, in rs_grabber, out I_left_undistorted, out I_right_undistorted)
             yield loop;
-        codel<loop>  undistort_images(in I_left, in I_right, out I_left_undistorted, out I_right_undistorted)
+        codel<loop>  undistort_images(in is_publishing, in I_left, in I_right, out I_left_undistorted, out I_right_undistorted)
             yield pause::loop, stop;
         codel<stop>  stop_image_undistort(out I_left_undistorted, out I_right_undistorted)
             yield ether;
@@ -103,9 +122,9 @@ component T265
 
         codel<start> init_detector(in rs_grabber, out tag_size, out detected_tags, out port_tags)
             yield loop;
-        codel<loop>  loop_detector(in I_left_undistorted, in tag_size, out detected_tags, out port_tags)
+        codel<loop>  loop_detector(in is_publishing, in I_left_undistorted, in tag_size, out detected_tags, out port_tags)
             yield pause::loop, stop;
-        codel<stop>  kill_detector(out detected_tags, out port_tags)
+        codel<stop>  kill_detector(out detected_tags)
             yield ether;
     };
 
@@ -117,9 +136,9 @@ component T265
 
         codel<start> init_display(in I_left, in I_right, in I_left_undistorted, in I_right_undistorted, in rs_grabber)
             yield loop;
-        codel<loop> refresh_display(in I_left, in I_right, in I_left_undistorted, in I_right_undistorted, in detected_tags)
+        codel<loop> refresh_display(in is_publishing, in I_left, in I_right, in I_left_undistorted, in I_right_undistorted, in detected_tags)
             yield pause::loop, stop;
-        codel<stop> stop_display(out rs_grabber, out I_left, out I_right, out I_left_undistorted, out I_right_undistorted)
+        codel<stop> stop_display(out rs_grabber, out I_left, out I_right, out I_left_undistorted, out I_right_undistorted, out is_publishing)
             yield ether;
     };
 

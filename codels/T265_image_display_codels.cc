@@ -110,15 +110,18 @@ genom_event
 stop_display(T265_realsense_grabber **rs_grabber,
              T265_vp_image **I_left, T265_vp_image **I_right,
              T265_vp_image **I_left_undistorted,
-             T265_vp_image **I_right_undistorted,
+             T265_vp_image **I_right_undistorted, bool *is_publishing,
              const genom_context self)
 {
+  *is_publishing = false; // Stop publishing
   (*rs_grabber)->g.close();
   
   vpDisplay::close((*I_left)->I);
   vpDisplay::close((*I_right)->I);
   vpDisplay::close((*I_left_undistorted)->I);
   vpDisplay::close((*I_right_undistorted)->I);
+
+  std::cout << "stop image display\n";
 
   return T265_ether;
 }

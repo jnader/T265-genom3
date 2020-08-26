@@ -70,102 +70,109 @@ init_detector(const T265_realsense_grabber *rs_grabber,
  * Yields to T265_pause_loop, T265_stop.
  */
 genom_event
-loop_detector(const T265_vp_image *I_left_undistorted, double tag_size,
+loop_detector(bool is_publishing,
+              const T265_vp_image *I_left_undistorted, double tag_size,
               T265_tags *detected_tags,
               const T265_port_tags *port_tags,
               const genom_context self)
 {
-  cMo_vec.clear();
-
-  detector->detect(I_left_undistorted->I, tag_size, cam_undistort, cMo_vec);
-
-  if(cMo_vec.size() == 0) // No tags detected in this iteration, release the buffer of detected_tags.
+  if(is_publishing == true)
   {
-    if(detected_tags->_length != 0)
+    cMo_vec.clear();
+
+    detector->detect(I_left_undistorted->I, tag_size, cam_undistort, cMo_vec);
+
+    if(cMo_vec.size() == 0) // No tags detected in this iteration, release the buffer of detected_tags.
     {
-      // IDS
-      //
-      detected_tags->_maximum = 0;
-      detected_tags->_length = 0;
-      detected_tags->_buffer = NULL;
-      //
-    }
-  }
-
-  else // Tag(s) detected.
-  {
-    if(detected_tags->_length != 0) // Releasing already existing buffer.
-    {
-      delete [] detected_tags->_buffer;
-      detected_tags->_buffer = NULL;
-    }
-
-    detected_tags->_maximum = cMo_vec.size();
-    detected_tags->_length = 0;
-
-    tag_corners = detector->getTagsCorners(); // Get all tags corners.
-    tag_ids = detector->getTagsId(); // Get all tags IDs.
-
-    if(detected_tags->_buffer == NULL)
-    {
-      detected_tags->_buffer = new apriltag_tag[detected_tags->_maximum];
-    }
-
-    // Filling detected_tags data structure.
-    for(int i = 0; i < cMo_vec.size(); i++)
-    {
-      tmp_sec    = I_left_undistorted->timestamp / 1000;
-      tmp_nsec = ((long)I_left_undistorted->timestamp % 1000) * 1000000;
-
-      // Save timestamp of image as timestamp of apriltag.
-      detected_tags->_buffer[i].ts.sec  = static_cast<int32_t>(tmp_sec);
-      detected_tags->_buffer[i].ts.nsec = static_cast<int32_t>(tmp_nsec);
-
-      // Save ID of tag.
-      detected_tags->_buffer[i].id = tag_ids[i];
-
-      // Save center of tag.
-      center = detector->getCog(i);
-      detected_tags->_buffer[i].center._value.u = center.get_i();
-      detected_tags->_buffer[i].center._value.v = center.get_j();
-
-      // Save corners.
-      for(int j = 0; j < 4; j++)
+      if(detected_tags->_length != 0)
       {
-        detected_tags->_buffer[i].corners_pos._value[j].u = tag_corners[i][j].get_i();
-        detected_tags->_buffer[i].corners_pos._value[j].v = tag_corners[i][j].get_j();
+        // IDS
+        //
+        detected_tags->_maximum = 0;
+        detected_tags->_length = 0;
+        detected_tags->_buffer = NULL;
+        //
+      }
+    }
+
+    else // Tag(s) detected.
+    {
+      if(detected_tags->_length != 0) // Releasing already existing buffer.
+      {
+        delete [] detected_tags->_buffer;
+        detected_tags->_buffer = NULL;
       }
 
-      // Save apriltag's pose.
-      cMo_vec[i].extract(cto);
-      cMo_vec[i].extract(cqo);
+      detected_tags->_maximum = cMo_vec.size();
+      detected_tags->_length = 0;
 
-      detected_tags->_buffer[i].pos._value.x = cto[0];
-      detected_tags->_buffer[i].pos._value.y = cto[1];
-      detected_tags->_buffer[i].pos._value.z = cto[2];
+      tag_corners = detector->getTagsCorners(); // Get all tags corners.
+      tag_ids = detector->getTagsId(); // Get all tags IDs.
 
-      detected_tags->_buffer[i].att._value.qx = cqo[0];
-      detected_tags->_buffer[i].att._value.qy = cqo[1];
-      detected_tags->_buffer[i].att._value.qz = cqo[2];
-      detected_tags->_buffer[i].att._value.qw = cqo[3];
+      if(detected_tags->_buffer == NULL)
+      {
+        detected_tags->_buffer = new apriltag_tag[detected_tags->_maximum];
+      }
 
-      // Save apriltag's message.
-      strcpy(detected_tags->_buffer[i].message._value, detector->getMessage(i).c_str());
+      // Filling detected_tags data structure.
+      for(int i = 0; i < cMo_vec.size(); i++)
+      {
+        tmp_sec    = I_left_undistorted->timestamp / 1000;
+        tmp_nsec = ((long)I_left_undistorted->timestamp % 1000) * 1000000;
 
-      detected_tags->_length++;
+        // Save timestamp of image as timestamp of apriltag.
+        detected_tags->_buffer[i].ts.sec  = static_cast<int32_t>(tmp_sec);
+        detected_tags->_buffer[i].ts.nsec = static_cast<int32_t>(tmp_nsec);
+
+        // Save ID of tag.
+        detected_tags->_buffer[i].id = tag_ids[i];
+
+        // Save center of tag.
+        center = detector->getCog(i);
+        detected_tags->_buffer[i].center._value.u = center.get_i();
+        detected_tags->_buffer[i].center._value.v = center.get_j();
+
+        // Save corners.
+        for(int j = 0; j < 4; j++)
+        {
+          detected_tags->_buffer[i].corners_pos._value[j].u = tag_corners[i][j].get_i();
+          detected_tags->_buffer[i].corners_pos._value[j].v = tag_corners[i][j].get_j();
+        }
+
+        // Save apriltag's pose.
+        cMo_vec[i].extract(cto);
+        cMo_vec[i].extract(cqo);
+
+        detected_tags->_buffer[i].pos._value.x = cto[0];
+        detected_tags->_buffer[i].pos._value.y = cto[1];
+        detected_tags->_buffer[i].pos._value.z = cto[2];
+
+        detected_tags->_buffer[i].att._value.qx = cqo[0];
+        detected_tags->_buffer[i].att._value.qy = cqo[1];
+        detected_tags->_buffer[i].att._value.qz = cqo[2];
+        detected_tags->_buffer[i].att._value.qw = cqo[3];
+
+        // Save apriltag's message.
+        strcpy(detected_tags->_buffer[i].message._value, detector->getMessage(i).c_str());
+
+        detected_tags->_length++;
+      }
     }
+
+    // OUTPORT
+    //
+    tags = port_tags->data(self); // Is it necessary to ready ?
+    *tags = *detected_tags;
+
+    if(port_tags->write(self))
+      std::cout << "Error" << std::endl;
+    //
+
+    return T265_pause_loop;
   }
 
-  // OUTPORT
-  //
-  tags = port_tags->data(self); // Is it necessary to ready ?
-  *tags = *detected_tags;
-
-  if(port_tags->write(self))
-    std::cout << "Error" << std::endl;
-  //
-
-  return T265_pause_loop;
+  else
+    return T265_stop;
 }
 
 
@@ -175,11 +182,18 @@ loop_detector(const T265_vp_image *I_left_undistorted, double tag_size,
  * Yields to T265_ether.
  */
 genom_event
-kill_detector(T265_tags *detected_tags,
-              const T265_port_tags *port_tags,
-              const genom_context self)
+kill_detector(T265_tags *detected_tags, const genom_context self)
 {
+  delete detector;
   detector = NULL;
+
+  if(detected_tags->_length != 0) // Releasing already existing buffer.
+  {
+    delete [] detected_tags->_buffer;
+    detected_tags->_buffer = NULL;
+  }
+
+  std::cout << "stop detector\n";
 
   return T265_ether;
 }

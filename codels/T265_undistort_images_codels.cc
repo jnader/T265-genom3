@@ -44,19 +44,25 @@ init_undist_images(const T265_vp_image *I_left,
  * Yields to T265_pause_loop, T265_stop.
  */
 genom_event
-undistort_images(const T265_vp_image *I_left,
+undistort_images(bool is_publishing, const T265_vp_image *I_left,
                  const T265_vp_image *I_right,
                  T265_vp_image **I_left_undistorted,
                  T265_vp_image **I_right_undistorted,
                  const genom_context self)
 {
-  vpImageTools::undistort(I_left->I, mapU_left, mapV_left, mapDu_left, mapDv_left, (*I_left_undistorted)->I);
-  vpImageTools::undistort(I_right->I, mapU_right, mapV_right, mapDu_right, mapDv_right, (*I_right_undistorted)->I);
+  if(is_publishing)
+  {
+    vpImageTools::undistort(I_left->I, mapU_left, mapV_left, mapDu_left, mapDv_left, (*I_left_undistorted)->I);
+    vpImageTools::undistort(I_right->I, mapU_right, mapV_right, mapDu_right, mapDv_right, (*I_right_undistorted)->I);
 
-  (*I_left_undistorted)->timestamp = I_left->timestamp;
-  (*I_right_undistorted)->timestamp = I_right->timestamp;
+    (*I_left_undistorted)->timestamp = I_left->timestamp;
+    (*I_right_undistorted)->timestamp = I_right->timestamp;
 
-  return T265_pause_loop;
+    return T265_pause_loop;
+  }
+
+  else
+    return T265_stop;
 }
 
 
@@ -70,6 +76,8 @@ stop_image_undistort(T265_vp_image **I_left_undistorted,
                      T265_vp_image **I_right_undistorted,
                      const genom_context self)
 {
-  /* skeleton sample: insert your code */
-  /* skeleton sample */ return T265_ether;
+  delete (*I_left_undistorted);
+  delete (*I_right_undistorted);
+  std::cout << "stop undistort\n";
+  return T265_ether;
 }

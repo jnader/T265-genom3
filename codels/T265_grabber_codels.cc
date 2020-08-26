@@ -17,6 +17,7 @@ double timestamp, nsec;
 genom_event
 init_grabber(T265_ids *ids, const genom_context self)
 {
+  ids->is_publishing = true; // Default start publishing.
   ids->rs_grabber = new T265_realsense_grabber;
   ids->I_left = new T265_vp_image;
   ids->I_right = new T265_vp_image;
