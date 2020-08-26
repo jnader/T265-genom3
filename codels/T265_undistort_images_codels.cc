@@ -57,12 +57,9 @@ undistort_images(bool is_publishing, const T265_vp_image *I_left,
 
     (*I_left_undistorted)->timestamp = I_left->timestamp;
     (*I_right_undistorted)->timestamp = I_right->timestamp;
-
-    return T265_pause_loop;
   }
 
-  else
-    return T265_stop;
+  return T265_pause_loop;
 }
 
 

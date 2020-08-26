@@ -167,12 +167,9 @@ loop_detector(bool is_publishing,
     if(port_tags->write(self))
       std::cout << "Error" << std::endl;
     //
-
-    return T265_pause_loop;
   }
 
-  else
-    return T265_stop;
+  return T265_pause_loop;
 }
 
 
@@ -187,7 +184,7 @@ kill_detector(T265_tags *detected_tags, const genom_context self)
   delete detector;
   detector = NULL;
 
-  if(detected_tags->_length != 0) // Releasing already existing buffer.
+  if(detected_tags->_buffer != NULL && detected_tags->_length != 0) // Releasing already existing buffer.
   {
     delete [] detected_tags->_buffer;
     detected_tags->_buffer = NULL;

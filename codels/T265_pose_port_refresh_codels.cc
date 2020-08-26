@@ -84,12 +84,9 @@ refresh_pose(bool is_publishing,
 
     if(odom_state->write(self))
       std::cout << "Error" << std::endl;
-
-    return T265_pause_loop;
   }
 
-  else
-    return T265_stop;
+  return T265_pause_loop;
 }
 
 

@@ -47,55 +47,58 @@ init_display(const T265_vp_image *I_left, const T265_vp_image *I_right,
  * Yields to T265_pause_loop, T265_stop.
  */
 genom_event
-refresh_display(const T265_vp_image *I_left,
+refresh_display(bool is_publishing, const T265_vp_image *I_left,
                 const T265_vp_image *I_right,
                 const T265_vp_image *I_left_undistorted,
                 const T265_vp_image *I_right_undistorted,
                 const T265_tags *detected_tags,
                 const genom_context self)
 {
-  vpDisplay::display(I_left->I);
-  vpDisplay::display(I_right->I);
-
-  vpDisplay::display(I_left_undistorted->I);
-  vpDisplay::display(I_right_undistorted->I);
-
-  vpDisplay::displayText(I_left->I, 30, 30, "Click to quit", vpColor::red);
-  vpDisplay::displayText(I_right->I, 30, 30, "Click to quit", vpColor::red);
-
-  if(detected_tags->_buffer != NULL) // Displaying AprilTag centers, corners, pose and message.
+  if(is_publishing)
   {
-    for(int i = 0; i < detected_tags->_maximum; i++)
+    vpDisplay::display(I_left->I);
+    vpDisplay::display(I_right->I);
+
+    vpDisplay::display(I_left_undistorted->I);
+    vpDisplay::display(I_right_undistorted->I);
+
+    vpDisplay::displayText(I_left->I, 30, 30, "Click to quit", vpColor::red);
+    vpDisplay::displayText(I_right->I, 30, 30, "Click to quit", vpColor::red);
+
+    if(detected_tags->_buffer != NULL) // Displaying AprilTag centers, corners, pose and message.
     {
-      // Display center.
-      tag_center = vpImagePoint(detected_tags->_buffer[i].center._value.u, detected_tags->_buffer[i].center._value.v);
-      vpDisplay::displayCross(I_left_undistorted->I, tag_center, 10, vpColor::red, 5);
-
-      // Display corners.
-      for(int j = 0; j < 4; j++)
+      for(int i = 0; i < detected_tags->_maximum; i++)
       {
-        vpDisplay::displayCross(I_left_undistorted->I, vpImagePoint(detected_tags->_buffer[i].corners_pos._value[j].u,detected_tags->_buffer[i].corners_pos._value[j].v), 20, vpColor::green, 2);
+        // Display center.
+        tag_center = vpImagePoint(detected_tags->_buffer[i].center._value.u, detected_tags->_buffer[i].center._value.v);
+        vpDisplay::displayCross(I_left_undistorted->I, tag_center, 10, vpColor::red, 5);
+
+        // Display corners.
+        for(int j = 0; j < 4; j++)
+        {
+          vpDisplay::displayCross(I_left_undistorted->I, vpImagePoint(detected_tags->_buffer[i].corners_pos._value[j].u,detected_tags->_buffer[i].corners_pos._value[j].v), 20, vpColor::green, 2);
+        }
+
+        // Display pose.
+        cMo.buildFrom(vpTranslationVector(detected_tags->_buffer[i].pos._value.x,detected_tags->_buffer[i].pos._value.y,detected_tags->_buffer[i].pos._value.z),
+                      vpQuaternionVector(detected_tags->_buffer[i].att._value.qx,detected_tags->_buffer[i].att._value.qy,detected_tags->_buffer[i].att._value.qz,detected_tags->_buffer[i].att._value.qw));
+        vpDisplay::displayFrame(I_left_undistorted->I, cMo, left_cam_undistort, 0.08);
+
+        // Display message.
+        vpDisplay::displayText(I_left_undistorted->I, tag_center.get_i(), tag_center.get_j(), detected_tags->_buffer[i].message._value, vpColor::green);
       }
-
-      // Display pose.
-      cMo.buildFrom(vpTranslationVector(detected_tags->_buffer[i].pos._value.x,detected_tags->_buffer[i].pos._value.y,detected_tags->_buffer[i].pos._value.z),
-                    vpQuaternionVector(detected_tags->_buffer[i].att._value.qx,detected_tags->_buffer[i].att._value.qy,detected_tags->_buffer[i].att._value.qz,detected_tags->_buffer[i].att._value.qw));
-      vpDisplay::displayFrame(I_left_undistorted->I, cMo, left_cam_undistort, 0.08);
-
-      // Display message.
-      vpDisplay::displayText(I_left_undistorted->I, tag_center.get_i(), tag_center.get_j(), detected_tags->_buffer[i].message._value, vpColor::green);
     }
-  }
 
-  if (vpDisplay::getClick(I_left->I, false) || vpDisplay::getClick(I_right->I, false) ||
-      vpDisplay::getClick(I_left_undistorted->I, false) || vpDisplay::getClick(I_right_undistorted->I, false)) {
-      return T265_stop;
-  }
+    if (vpDisplay::getClick(I_left->I, false) || vpDisplay::getClick(I_right->I, false) ||
+        vpDisplay::getClick(I_left_undistorted->I, false) || vpDisplay::getClick(I_right_undistorted->I, false)) {
+        return T265_stop;
+    }
 
-  vpDisplay::flush(I_left->I);
-  vpDisplay::flush(I_right->I);
-  vpDisplay::flush(I_left_undistorted->I);
-  vpDisplay::flush(I_right_undistorted->I);
+    vpDisplay::flush(I_left->I);
+    vpDisplay::flush(I_right->I);
+    vpDisplay::flush(I_left_undistorted->I);
+    vpDisplay::flush(I_right_undistorted->I);
+  }
 
   return T265_pause_loop;
 }
