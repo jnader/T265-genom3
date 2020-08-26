@@ -118,6 +118,22 @@ a|.Data structure
 
 == Services
 
+[[start_publishing]]
+=== start_publishing (function)
+
+
+Start retreiving data from T265 sensor. (To be used after pause_publish)
+
+'''
+
+[[pause_publishing]]
+=== pause_publishing (function)
+
+
+Pauses retreiving data from T265 sensor.
+
+'''
+
 == Tasks
 
 [[grabber]]
