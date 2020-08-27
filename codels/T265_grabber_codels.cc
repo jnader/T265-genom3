@@ -8,6 +8,8 @@
 
 long sec;
 double timestamp, nsec;
+vpTranslationVector ctw;
+vpQuaternionVector cqw;
 
 /** Codel init_grabber of task grabber.
  *
@@ -21,10 +23,9 @@ init_grabber(T265_ids *ids, const genom_context self)
   ids->rs_grabber = new T265_realsense_grabber;
   ids->I_left = new T265_vp_image;
   ids->I_right = new T265_vp_image;
-  ids->poseref_M_sensor = new T265_vp_homogeneous_matrix;
-  ids->pose_data.pos._value.x = 0.;
-  ids->pose_data.pos._value.y = 0.;
-  ids->pose_data.pos._value.z = 0.;
+  ids->poseref_odo_sensor = new T265_vp_odometry;
+  ids->poseref_odo_sensor->vel.resize(6);
+  ids->poseref_odo_sensor->acc.resize(6);
 
   // Configuring pipeline streams.
   rs2::config cfg;
@@ -57,117 +58,82 @@ init_grabber(T265_ids *ids, const genom_context self)
 
       // In case there's a pose in the frameset.
       rs2_pose pose_data = fs.get_pose_frame().get_pose_data();
-      vpTranslationVector ctw(static_cast<double>(pose_data.translation.x),
+      ctw = vpTranslationVector(static_cast<double>(pose_data.translation.x),
                               static_cast<double>(pose_data.translation.y),
                               static_cast<double>(pose_data.translation.z));
       
-      vpQuaternionVector cqw(static_cast<double>(pose_data.rotation.x),
+      cqw = vpQuaternionVector(static_cast<double>(pose_data.rotation.x),
                              static_cast<double>(pose_data.rotation.y),
                              static_cast<double>(pose_data.rotation.z),
                              static_cast<double>(pose_data.rotation.w));
 
       // Timestamp.
-      sec    = timestamp / 1000;
-      nsec = ((long)timestamp % 1000) * 1000000;
-      ids->pose_data.ts.sec  = static_cast<int32_t>(sec);
-      ids->pose_data.ts.nsec = static_cast<int32_t>(nsec);
+      ids->poseref_odo_sensor->timestamp = timestamp;
 
-      ids->pose_data.pos._present = true;
-      ids->pose_data.pos._value.x = ctw[0];
-      ids->pose_data.pos._value.y = ctw[1];
-      ids->pose_data.pos._value.z = ctw[2];
+      // Pose
+      ids->poseref_odo_sensor->pose.buildFrom(ctw, cqw);
 
-      ids->pose_data.att._present = true;
-      ids->pose_data.att._value.qw = cqw[3];
-      ids->pose_data.att._value.qx = cqw[0];
-      ids->pose_data.att._value.qy = cqw[1];
-      ids->pose_data.att._value.qz = cqw[2];
+      // Velocity
+      ids->poseref_odo_sensor->vel[0] = static_cast<double>(pose_data.velocity.x);
+      ids->poseref_odo_sensor->vel[1] = static_cast<double>(pose_data.velocity.y);
+      ids->poseref_odo_sensor->vel[2] = static_cast<double>(pose_data.velocity.z);
 
-      ids->poseref_M_sensor->data.buildFrom(ctw, cqw);
+      ids->poseref_odo_sensor->vel[3] = static_cast<double>(pose_data.angular_velocity.x);
+      ids->poseref_odo_sensor->vel[4] = static_cast<double>(pose_data.angular_velocity.y);
+      ids->poseref_odo_sensor->vel[5] = static_cast<double>(pose_data.angular_velocity.z);
 
-      ids->pose_data.vel._present  = true;
-      ids->pose_data.avel._present = true;
+      // Acceleration
+      ids->poseref_odo_sensor->acc[0] = static_cast<double>(pose_data.acceleration.x);
+      ids->poseref_odo_sensor->acc[1] = static_cast<double>(pose_data.acceleration.y);
+      ids->poseref_odo_sensor->acc[2] = static_cast<double>(pose_data.acceleration.z);
 
-      ids->pose_data.vel._value.vx = static_cast<double>(pose_data.velocity.x);
-      ids->pose_data.vel._value.vy = static_cast<double>(pose_data.velocity.y);
-      ids->pose_data.vel._value.vz = static_cast<double>(pose_data.velocity.z);
-
-      ids->pose_data.avel._value.wx = static_cast<double>(pose_data.angular_velocity.x);
-      ids->pose_data.avel._value.wy = static_cast<double>(pose_data.angular_velocity.y);
-      ids->pose_data.avel._value.wz = static_cast<double>(pose_data.angular_velocity.z);
-
-      ids->pose_data.acc._present  = true;
-      ids->pose_data.aacc._present = true;
-
-      ids->pose_data.acc._value.ax = static_cast<double>(pose_data.acceleration.x);
-      ids->pose_data.acc._value.ay = static_cast<double>(pose_data.acceleration.y);
-      ids->pose_data.acc._value.az = static_cast<double>(pose_data.acceleration.z);
-
-      ids->pose_data.aacc._value.awx = static_cast<double>(pose_data.angular_acceleration.x);
-      ids->pose_data.aacc._value.awy = static_cast<double>(pose_data.angular_acceleration.y);
-      ids->pose_data.aacc._value.awz = static_cast<double>(pose_data.angular_acceleration.z);
+      ids->poseref_odo_sensor->acc[3] = static_cast<double>(pose_data.angular_acceleration.x);
+      ids->poseref_odo_sensor->acc[4] = static_cast<double>(pose_data.angular_acceleration.y);
+      ids->poseref_odo_sensor->acc[5] = static_cast<double>(pose_data.angular_acceleration.z);
 
       ids->pose_count++;
-      // confidence = pose_data.tracker_confidence;
+      ids->poseref_odo_sensor->tracker_confidence = pose_data.tracker_confidence;
     }
     else
     {
       rs2_pose pose_data = frame.as<rs2::pose_frame>().get_pose_data();
 
       // Stream that bypass synchronization (such as IMU, Pose, ...) will produce single frames
-      vpTranslationVector ctw(static_cast<double>(pose_data.translation.x),
+      ctw = vpTranslationVector(static_cast<double>(pose_data.translation.x),
                               static_cast<double>(pose_data.translation.y),
                               static_cast<double>(pose_data.translation.z));
       
-      vpQuaternionVector cqw(static_cast<double>(pose_data.rotation.x),
+      cqw = vpQuaternionVector(static_cast<double>(pose_data.rotation.x),
                              static_cast<double>(pose_data.rotation.y),
                              static_cast<double>(pose_data.rotation.z),
                              static_cast<double>(pose_data.rotation.w));
 
       // Timestamp.
-      sec    = timestamp / 1000;
-      nsec = ((long)timestamp % 1000) * 1000000;
-      ids->pose_data.ts.sec  = static_cast<int32_t>(sec);
-      ids->pose_data.ts.nsec = static_cast<int32_t>(nsec);
+      ids->poseref_odo_sensor->timestamp = timestamp;
 
-      ids->pose_data.pos._present = true;
-      ids->pose_data.pos._value.x = ctw[0];
-      ids->pose_data.pos._value.y = ctw[1];
-      ids->pose_data.pos._value.z = ctw[2];
+      // Pose
+      ids->poseref_odo_sensor->pose.buildFrom(ctw, cqw);
 
-      ids->pose_data.att._present = true;
-      ids->pose_data.att._value.qw = cqw[3];
-      ids->pose_data.att._value.qx = cqw[0];
-      ids->pose_data.att._value.qy = cqw[1];
-      ids->pose_data.att._value.qz = cqw[2];
+      // Velocity
+      ids->poseref_odo_sensor->vel[0] = static_cast<double>(pose_data.velocity.x);
+      ids->poseref_odo_sensor->vel[1] = static_cast<double>(pose_data.velocity.y);
+      ids->poseref_odo_sensor->vel[2] = static_cast<double>(pose_data.velocity.z);
 
-      ids->poseref_M_sensor->data.buildFrom(ctw, cqw);
+      ids->poseref_odo_sensor->vel[3] = static_cast<double>(pose_data.angular_velocity.x);
+      ids->poseref_odo_sensor->vel[4] = static_cast<double>(pose_data.angular_velocity.y);
+      ids->poseref_odo_sensor->vel[5] = static_cast<double>(pose_data.angular_velocity.z);
 
-      ids->pose_data.vel._present  = true;
-      ids->pose_data.avel._present = true;
+      // Acceleration
+      ids->poseref_odo_sensor->acc[0] = static_cast<double>(pose_data.acceleration.x);
+      ids->poseref_odo_sensor->acc[1] = static_cast<double>(pose_data.acceleration.y);
+      ids->poseref_odo_sensor->acc[2] = static_cast<double>(pose_data.acceleration.z);
 
-      ids->pose_data.vel._value.vx = static_cast<double>(pose_data.velocity.x);
-      ids->pose_data.vel._value.vy = static_cast<double>(pose_data.velocity.y);
-      ids->pose_data.vel._value.vz = static_cast<double>(pose_data.velocity.z);
-
-      ids->pose_data.avel._value.wx = static_cast<double>(pose_data.angular_velocity.x);
-      ids->pose_data.avel._value.wy = static_cast<double>(pose_data.angular_velocity.y);
-      ids->pose_data.avel._value.wz = static_cast<double>(pose_data.angular_velocity.z);
-
-      ids->pose_data.acc._present  = true;
-      ids->pose_data.aacc._present = true;
-
-      ids->pose_data.acc._value.ax = static_cast<double>(pose_data.acceleration.x);
-      ids->pose_data.acc._value.ay = static_cast<double>(pose_data.acceleration.y);
-      ids->pose_data.acc._value.az = static_cast<double>(pose_data.acceleration.z);
-
-      ids->pose_data.aacc._value.awx = static_cast<double>(pose_data.angular_acceleration.x);
-      ids->pose_data.aacc._value.awy = static_cast<double>(pose_data.angular_acceleration.y);
-      ids->pose_data.aacc._value.awz = static_cast<double>(pose_data.angular_acceleration.z);
+      ids->poseref_odo_sensor->acc[3] = static_cast<double>(pose_data.angular_acceleration.x);
+      ids->poseref_odo_sensor->acc[4] = static_cast<double>(pose_data.angular_acceleration.y);
+      ids->poseref_odo_sensor->acc[5] = static_cast<double>(pose_data.angular_acceleration.z);
 
       ids->pose_count++;
-
-      // confidence = pose_data.tracker_confidence;
+      ids->poseref_odo_sensor->tracker_confidence = pose_data.tracker_confidence;
     }
   };
 

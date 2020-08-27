@@ -14,7 +14,7 @@ component T265
     /* NATIVE TYPES */
     native realsense_grabber;
     native vp_image;
-    native vp_homogeneous_matrix;
+    native vp_odometry;
     native vp_AprilTag_detector;
 
     typedef sequence<apriltag::tag> tags;
@@ -38,8 +38,8 @@ component T265
         long image_count, pose_count;
 
         /* Odometry data containers */
-        or_pose_estimator::state pose_data;
-        vp_homogeneous_matrix poseref_M_sensor;
+        /* or_pose_estimator::state pose_data;*/
+        vp_odometry poseref_odo_sensor;
 
         /* Gyro angular velocity container */
         or::t3d::avel imu_gyro_data;
@@ -93,7 +93,7 @@ component T265
 
         codel<start> init_port(out odom_state)
             yield loop;
-        codel<loop> refresh_pose(in is_publishing, in rs_grabber, in pose_data, in poseref_M_sensor, out odom_state)
+        codel<loop> refresh_pose(in is_publishing, in rs_grabber, in poseref_odo_sensor, out odom_state)
             yield pause::loop, stop;
         codel<stop> stop_pose_display()
             yield ether;

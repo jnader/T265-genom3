@@ -4,7 +4,10 @@
 
 
 /* --- Task pose_port_refresh ------------------------------------------- */
-
+double odo_sec, odo_nsec;
+vpHomogeneousMatrix world_M_robot;
+vpTranslationVector world_t_robot;
+vpQuaternionVector world_q_robot;
 
 /** Codel init_port of task pose_port_refresh.
  *
@@ -38,49 +41,66 @@ init_port(const T265_odom_state *odom_state, const genom_context self)
 genom_event
 refresh_pose(bool is_publishing,
              const T265_realsense_grabber *rs_grabber,
-             const or_pose_estimator_state *pose_data,
-             const T265_vp_homogeneous_matrix *poseref_M_sensor,
+             const T265_vp_odometry *poseref_odo_sensor,
              const T265_odom_state *odom_state,
              const genom_context self)
 {
   if(is_publishing)
   {
+    // Apply transformations on pose/velocity/acceleration.
+
+    world_M_robot = poseref_odo_sensor->pose;
+
+    // Extracting translation vector from final pose.
+    world_M_robot.extract(world_t_robot);
+
+    // Extracting quaternion vector from final pose.
+    world_M_robot.extract(world_q_robot);
+
     or_pose_estimator_state *s = odom_state->data(self);
 
-    // s->ts.sec  = pose_data->ts.sec;
-    // s->ts.nsec = pose_data->ts.nsec;
+    odo_sec    = poseref_odo_sensor->timestamp / 1000;
+    odo_nsec   = ((long)poseref_odo_sensor->timestamp % 1000) * 1000000;
 
-    // s->pos._present = true;
-    // s->pos._value.x = pose_data->pos._value.x;
-    // s->pos._value.y = pose_data->pos._value.y;
-    // s->pos._value.z = pose_data->pos._value.z;
+    // Timestamp.
+    s->ts.sec  = static_cast<int32_t>(odo_sec);
+    s->ts.nsec = static_cast<int32_t>(odo_nsec);
 
-    // s->att._present = true;
-    // s->att._value.qx = pose_data->att._value.qx;
-    // s->att._value.qy = pose_data->att._value.qy;
-    // s->att._value.qz = pose_data->att._value.qz;
+    // Pose.
+    s->pos._present = true;
+    s->pos._value.x = world_t_robot[0];
+    s->pos._value.y = world_t_robot[1];
+    s->pos._value.z = world_t_robot[2];
 
-    // s->vel._present = true;
-    // s->vel._value.vx = pose_data->vel._value.vx;
-    // s->vel._value.vy = pose_data->vel._value.vy;
-    // s->vel._value.vz = pose_data->vel._value.vz;
+    s->att._present = true;
+    s->att._value.qx = world_q_robot[0];
+    s->att._value.qy = world_q_robot[1];
+    s->att._value.qz = world_q_robot[2];
+    s->att._value.qz = world_q_robot[3];
 
-    // s->avel._present = true;
-    // s->avel._value.wx = pose_data->avel._value.wx;
-    // s->avel._value.wy = pose_data->avel._value.wy;
-    // s->avel._value.wz = pose_data->avel._value.wz;
+    // Velocity.
+    s->vel._present = true;
+    s->vel._value.vx = poseref_odo_sensor->vel[0];
+    s->vel._value.vy = poseref_odo_sensor->vel[1];
+    s->vel._value.vz = poseref_odo_sensor->vel[2];
 
-    // s->acc._present = true;
-    // s->acc._value.ax = pose_data->acc._value.ax;
-    // s->acc._value.ay = pose_data->acc._value.ay;
-    // s->acc._value.az = pose_data->acc._value.az;
+    s->avel._present = true;
+    s->avel._value.wx = poseref_odo_sensor->vel[3];
+    s->avel._value.wy = poseref_odo_sensor->vel[4];
+    s->avel._value.wz = poseref_odo_sensor->vel[5];
 
-    // s->aacc._present = true;
-    // s->aacc._value.awx = pose_data->aacc._value.awx;
-    // s->aacc._value.awy = pose_data->aacc._value.awy;
-    // s->aacc._value.awz = pose_data->aacc._value.awz;
+    // Acceleration.
+    s->acc._present = true;
+    s->acc._value.ax = poseref_odo_sensor->acc[0];
+    s->acc._value.ay = poseref_odo_sensor->acc[1];
+    s->acc._value.az = poseref_odo_sensor->acc[2];
 
-    *s = *pose_data;
+    s->aacc._present = true;
+    s->aacc._value.awx = poseref_odo_sensor->acc[3];
+    s->aacc._value.awy = poseref_odo_sensor->acc[4];
+    s->aacc._value.awz = poseref_odo_sensor->acc[5];
+
+    // Covariances.
 
     if(odom_state->write(self))
       std::cout << "Error" << std::endl;

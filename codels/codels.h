@@ -18,9 +18,12 @@ struct T265_vp_image
     vpImage<unsigned char> I;
 };
 
-struct T265_vp_homogeneous_matrix
+struct T265_vp_odometry
 {
-    vpHomogeneousMatrix data;
+    double timestamp;
+    vpHomogeneousMatrix pose;
+    vpColVector vel, acc;
+    unsigned int tracker_confidence;
 };
 
 #endif
