@@ -14,8 +14,8 @@ component T265
     /* NATIVE TYPES */
     native realsense_grabber;
     native vp_image;
+    native vp_homogeneous_matrix;
     native vp_odometry;
-    native vp_AprilTag_detector;
 
     typedef sequence<apriltag::tag> tags;
 
@@ -38,7 +38,6 @@ component T265
         long image_count, pose_count;
 
         /* Odometry data containers */
-        /* or_pose_estimator::state pose_data;*/
         vp_odometry poseref_odo_sensor;
 
         /* Gyro angular velocity container */
@@ -60,6 +59,7 @@ component T265
 
         /* Variables */
         boolean is_publishing;
+        vp_homogeneous_matrix pre_tf, post_tf;
     };
 
 /******************** FUNCTIONS ********************/
@@ -75,6 +75,18 @@ component T265
         doc "Pauses retreiving data from T265 sensor.";
 
         codel pause_publish(out is_publishing);
+    };
+
+    function set_pre_tf(in sequence< sequence<double,4> , 4 > new_pre_tf)
+    {
+        doc "Set precedent multiplication transformation. See documentation for more info.";
+        codel set_pre_tf_codel(in new_pre_tf, out pre_tf);
+    };
+
+    function set_post_tf(in sequence< sequence<double,4> , 4> new_post_tf)
+    {
+        doc "Set post multiplication transformation. See documentation for more info.";
+        codel set_post_tf_codel(in new_post_tf, out post_tf);
     };
 
 /******************** TASKS ********************/
@@ -93,9 +105,9 @@ component T265
 
         codel<start> init_port(out odom_state)
             yield loop;
-        codel<loop> refresh_pose(in is_publishing, in rs_grabber, in poseref_odo_sensor, out odom_state)
+        codel<loop> refresh_pose(in is_publishing, in rs_grabber, in poseref_odo_sensor, in pre_tf, in post_tf, out odom_state)
             yield pause::loop, stop;
-        codel<stop> stop_pose_display()
+        codel<stop> stop_pose_display(out poseref_odo_sensor, out pre_tf, out post_tf)
             yield ether;
     };
 

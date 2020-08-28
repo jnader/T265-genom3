@@ -26,6 +26,8 @@ init_grabber(T265_ids *ids, const genom_context self)
   ids->poseref_odo_sensor = new T265_vp_odometry;
   ids->poseref_odo_sensor->vel.resize(6);
   ids->poseref_odo_sensor->acc.resize(6);
+  ids->pre_tf = new T265_vp_homogeneous_matrix;
+  ids->post_tf = new T265_vp_homogeneous_matrix;
 
   // Configuring pipeline streams.
   rs2::config cfg;

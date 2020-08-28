@@ -18,6 +18,11 @@ struct T265_vp_image
     vpImage<unsigned char> I;
 };
 
+struct T265_vp_homogeneous_matrix
+{
+    vpHomogeneousMatrix mat;
+};
+
 struct T265_vp_odometry
 {
     double timestamp;

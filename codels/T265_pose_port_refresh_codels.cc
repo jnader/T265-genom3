@@ -8,6 +8,8 @@ double odo_sec, odo_nsec;
 vpHomogeneousMatrix world_M_robot;
 vpTranslationVector world_t_robot;
 vpQuaternionVector world_q_robot;
+vpVelocityTwistMatrix world_V_poseref;
+vpColVector world_v, world_a;
 
 /** Codel init_port of task pose_port_refresh.
  *
@@ -42,18 +44,23 @@ genom_event
 refresh_pose(bool is_publishing,
              const T265_realsense_grabber *rs_grabber,
              const T265_vp_odometry *poseref_odo_sensor,
+             const T265_vp_homogeneous_matrix *pre_tf,
+             const T265_vp_homogeneous_matrix *post_tf,
              const T265_odom_state *odom_state,
              const genom_context self)
 {
   if(is_publishing)
   {
     // Apply transformations on pose/velocity/acceleration.
-
-    world_M_robot = poseref_odo_sensor->pose;
+    // Pose
+    world_M_robot = pre_tf->mat * poseref_odo_sensor->pose * post_tf->mat;
+    // Velocity/Acceleration
+    world_V_poseref.buildFrom(pre_tf->mat);
+    world_v = world_V_poseref * poseref_odo_sensor->vel;
+    world_a = world_V_poseref * poseref_odo_sensor->acc;
 
     // Extracting translation vector from final pose.
     world_M_robot.extract(world_t_robot);
-
     // Extracting quaternion vector from final pose.
     world_M_robot.extract(world_q_robot);
 
@@ -116,8 +123,14 @@ refresh_pose(bool is_publishing,
  * Yields to T265_ether.
  */
 genom_event
-stop_pose_display(const genom_context self)
+stop_pose_display(T265_vp_odometry **poseref_odo_sensor,
+                  T265_vp_homogeneous_matrix **pre_tf,
+                  T265_vp_homogeneous_matrix **post_tf,
+                  const genom_context self)
 {
+  delete (*poseref_odo_sensor);
+  delete (*pre_tf);
+  delete (*post_tf);
   std::cout << "stop pose_refresh\n";
   return T265_ether;
 }
