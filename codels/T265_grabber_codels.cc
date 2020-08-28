@@ -30,6 +30,7 @@ init_grabber(T265_ids *ids, const genom_context self)
   ids->post_tf = new T265_vp_homogeneous_matrix;
   ids->nb_display_coefficient = 1;
   ids->display_enabled = true;
+  ids->detection_enabled = true;
 
   // Configuring pipeline streams.
   rs2::config cfg;

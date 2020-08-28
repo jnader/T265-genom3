@@ -58,7 +58,7 @@ component T265
         tags detected_tags;
 
         /* Variables */
-        boolean is_publishing, display_enabled;
+        boolean is_publishing, display_enabled, detection_enabled;
         short nb_display_coefficient;
         vp_homogeneous_matrix pre_tf, post_tf;
     };
@@ -94,6 +94,18 @@ component T265
     {
         doc "Set display frequency. Maximum possible display frequency is 30Hz. 0 will disable display.";
         codel set_display_frequency_codel(in frequency, out nb_display_coefficient, out display_enabled);
+    };
+
+    function enable_detection()
+    {
+        doc "Enable detection. (AprilTag, ...)";
+        codel enable_detection_codel(out detection_enabled);
+    };
+
+    function disable_detection()
+    {
+        doc "Disable detection.";
+        codel disable_detection_codel(out detection_enabled);
     };
 
 /******************** TASKS ********************/
@@ -141,7 +153,7 @@ component T265
 
         codel<start> init_detector(in rs_grabber, out tag_size, out detected_tags, out port_tags)
             yield loop;
-        codel<loop>  loop_detector(in is_publishing, in I_left_undistorted, in tag_size, out detected_tags, out port_tags)
+        codel<loop>  loop_detector(in detection_enabled, in is_publishing, in I_left_undistorted, in tag_size, out detected_tags, out port_tags)
             yield pause::loop, stop;
         codel<stop>  kill_detector(out detected_tags)
             yield ether;
@@ -155,7 +167,7 @@ component T265
 
         codel<start> init_display(in I_left, in I_right, in I_left_undistorted, in I_right_undistorted, in rs_grabber)
             yield loop;
-        codel<loop> refresh_display(in is_publishing, in display_enabled, in image_count, in nb_display_coefficient, in I_left, in I_right, in I_left_undistorted, in I_right_undistorted, in detected_tags)
+        codel<loop> refresh_display(in is_publishing, in display_enabled, in image_count, in nb_display_coefficient, in I_left, in I_right, in I_left_undistorted, in I_right_undistorted, in detection_enabled, in detected_tags)
             yield pause::loop, stop;
         codel<stop> stop_display(out rs_grabber, out I_left, out I_right, out I_left_undistorted, out I_right_undistorted, out is_publishing)
             yield ether;

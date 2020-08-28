@@ -179,6 +179,22 @@ Set display frequency. Maximum possible display frequency is 30Hz. 0 will disabl
 
 '''
 
+[[enable_detection]]
+=== enable_detection (function)
+
+
+Enable detection. (AprilTag, ...)
+
+'''
+
+[[disable_detection]]
+=== disable_detection (function)
+
+
+Disable detection.
+
+'''
+
 == Tasks
 
 [[grabber]]

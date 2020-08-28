@@ -53,7 +53,7 @@ refresh_display(bool is_publishing, bool display_enabled,
                 const T265_vp_image *I_right,
                 const T265_vp_image *I_left_undistorted,
                 const T265_vp_image *I_right_undistorted,
-                const T265_tags *detected_tags,
+                bool detection_enabled, const T265_tags *detected_tags,
                 const genom_context self)
 {
   if(is_publishing && display_enabled && (image_count % nb_display_coefficient == 0))
@@ -67,7 +67,7 @@ refresh_display(bool is_publishing, bool display_enabled,
     vpDisplay::displayText(I_left->I, 30, 30, "Click to quit", vpColor::red);
     vpDisplay::displayText(I_right->I, 30, 30, "Click to quit", vpColor::red);
 
-    if(detected_tags->_buffer != NULL) // Displaying AprilTag centers, corners, pose and message.
+    if(detected_tags->_buffer != NULL && detection_enabled) // Displaying AprilTag centers, corners, pose and message.
     {
       for(int i = 0; i < detected_tags->_maximum; i++)
       {

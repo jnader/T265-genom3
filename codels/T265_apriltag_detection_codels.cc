@@ -70,13 +70,13 @@ init_detector(const T265_realsense_grabber *rs_grabber,
  * Yields to T265_pause_loop, T265_stop.
  */
 genom_event
-loop_detector(bool is_publishing,
+loop_detector(bool detection_enabled, bool is_publishing,
               const T265_vp_image *I_left_undistorted, double tag_size,
               T265_tags *detected_tags,
               const T265_port_tags *port_tags,
               const genom_context self)
 {
-  if(is_publishing == true)
+  if(is_publishing && detection_enabled)
   {
     cMo_vec.clear();
 
@@ -90,8 +90,14 @@ loop_detector(bool is_publishing,
         //
         detected_tags->_maximum = 0;
         detected_tags->_length = 0;
+        delete [] detected_tags->_buffer;
         detected_tags->_buffer = NULL;
         //
+
+        *tags = *detected_tags; // Empty output port.
+
+        if(port_tags->write(self))
+          std::cout << "Error" << std::endl;
       }
     }
 
@@ -129,10 +135,12 @@ loop_detector(bool is_publishing,
 
         // Save center of tag.
         center = detector->getCog(i);
+        detected_tags->_buffer[i].center._present = true;
         detected_tags->_buffer[i].center._value.u = center.get_i();
         detected_tags->_buffer[i].center._value.v = center.get_j();
 
         // Save corners.
+        detected_tags->_buffer[i].corners_pos._present = true;
         for(int j = 0; j < 4; j++)
         {
           detected_tags->_buffer[i].corners_pos._value[j].u = tag_corners[i][j].get_i();
@@ -143,16 +151,19 @@ loop_detector(bool is_publishing,
         cMo_vec[i].extract(cto);
         cMo_vec[i].extract(cqo);
 
+        detected_tags->_buffer[i].pos._present = true;
         detected_tags->_buffer[i].pos._value.x = cto[0];
         detected_tags->_buffer[i].pos._value.y = cto[1];
         detected_tags->_buffer[i].pos._value.z = cto[2];
 
+        detected_tags->_buffer[i].att._present = true;
         detected_tags->_buffer[i].att._value.qx = cqo[0];
         detected_tags->_buffer[i].att._value.qy = cqo[1];
         detected_tags->_buffer[i].att._value.qz = cqo[2];
         detected_tags->_buffer[i].att._value.qw = cqo[3];
 
         // Save apriltag's message.
+        detected_tags->_buffer[i].message._present = true;
         strcpy(detected_tags->_buffer[i].message._value, detector->getMessage(i).c_str());
 
         detected_tags->_length++;
@@ -161,12 +172,31 @@ loop_detector(bool is_publishing,
 
     // OUTPORT
     //
-    tags = port_tags->data(self); // Is it necessary to ready ?
+    tags = port_tags->data(self); // Is it necessary to read ?
     *tags = *detected_tags;
 
     if(port_tags->write(self))
       std::cout << "Error" << std::endl;
     //
+  }
+
+  else // In case disabling detection, should update port.
+  {
+    if(detected_tags->_length != 0)
+      {
+        // IDS
+        //
+        detected_tags->_maximum = 0;
+        detected_tags->_length = 0;
+        delete [] detected_tags->_buffer;
+        detected_tags->_buffer = NULL;
+        //
+
+        *tags = *detected_tags; // Empty output port.
+
+        if(port_tags->write(self))
+          std::cout << "Error" << std::endl;
+      }
   }
 
   return T265_pause_loop;

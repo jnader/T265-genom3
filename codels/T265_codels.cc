@@ -99,3 +99,33 @@ set_display_frequency_codel(double frequency,
   }
   return genom_ok;
 }
+
+
+/* --- Function enable_detection ---------------------------------------- */
+
+/** Codel enable_detection_codel of function enable_detection.
+ *
+ * Returns genom_ok.
+ */
+genom_event
+enable_detection_codel(bool *detection_enabled,
+                       const genom_context self)
+{
+  *detection_enabled = true;
+  return genom_ok;
+}
+
+
+/* --- Function disable_detection --------------------------------------- */
+
+/** Codel disable_detection_codel of function disable_detection.
+ *
+ * Returns genom_ok.
+ */
+genom_event
+disable_detection_codel(bool *detection_enabled,
+                        const genom_context self)
+{
+  *detection_enabled = false;
+  return genom_ok;
+}
