@@ -47,14 +47,16 @@ init_display(const T265_vp_image *I_left, const T265_vp_image *I_right,
  * Yields to T265_pause_loop, T265_stop.
  */
 genom_event
-refresh_display(bool is_publishing, const T265_vp_image *I_left,
+refresh_display(bool is_publishing, bool display_enabled,
+                int32_t image_count, int16_t nb_display_coefficient,
+                const T265_vp_image *I_left,
                 const T265_vp_image *I_right,
                 const T265_vp_image *I_left_undistorted,
                 const T265_vp_image *I_right_undistorted,
                 const T265_tags *detected_tags,
                 const genom_context self)
 {
-  if(is_publishing)
+  if(is_publishing && display_enabled && (image_count % nb_display_coefficient == 0))
   {
     vpDisplay::display(I_left->I);
     vpDisplay::display(I_right->I);

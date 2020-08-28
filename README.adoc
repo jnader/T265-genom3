@@ -164,6 +164,21 @@ Set post multiplication transformation. See documentation for more info.
 
 '''
 
+[[set_display_frequency]]
+=== set_display_frequency (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `double` `frequency`
+
+|===
+
+Set display frequency. Maximum possible display frequency is 30Hz. 0 will disable display.
+
+'''
+
 == Tasks
 
 [[grabber]]

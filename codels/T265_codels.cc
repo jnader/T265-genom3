@@ -71,3 +71,31 @@ set_post_tf_codel(const sequence4_sequence4_double *new_post_tf,
 
   return genom_ok;
 }
+
+
+/* --- Function set_display_frequency ----------------------------------- */
+
+/** Codel set_display_frequency_codel of function set_display_frequency.
+ *
+ * Returns genom_ok.
+ */
+genom_event
+set_display_frequency_codel(double frequency,
+                            int16_t *nb_display_coefficient,
+                            bool *display_enabled,
+                            const genom_context self)
+{
+  if(frequency > 0 && frequency <= 30)
+  {
+    *nb_display_coefficient = 30. / frequency;
+    *display_enabled = true;
+  }
+  else
+  {
+    if(frequency == 0)
+      *display_enabled = false;
+    else
+      std::cout << "Frame rate : [0.1,30Hz]" << std::endl;
+  }
+  return genom_ok;
+}
