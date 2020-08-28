@@ -10,6 +10,7 @@ vpTranslationVector world_t_robot;
 vpQuaternionVector world_q_robot;
 vpVelocityTwistMatrix world_V_poseref;
 vpColVector world_v, world_a;
+double cov_pos, cov_twist;
 
 /** Codel init_port of task pose_port_refresh.
  *
@@ -108,6 +109,72 @@ refresh_pose(bool is_publishing,
     s->aacc._value.awz = poseref_odo_sensor->acc[5];
 
     // Covariances.
+    /* This calculation is based on librealsense-ros package implementation. */
+    // double cov_pos   = ids->uncertainties.linear_acc_cov  * static_cast<double>(pow(10, 3 - confidence));
+    // double cov_twist = ids->uncertainties.angular_vel_cov * static_cast<double>(pow(10.0, static_cast<double>(1 - (int)confidence)));
+
+    // Should be tested multiple times.
+    cov_pos   = 0.0009 * 0.0009;
+    double cov_twist = 0.0019 * 0.0019;
+
+    // Uncertainty on the estimated position.
+    s->pos_cov._present  = true;
+    s->pos_cov._value.cov[0] = cov_pos;
+    s->pos_cov._value.cov[1] = 0;
+    s->pos_cov._value.cov[2] = cov_pos;
+    s->pos_cov._value.cov[3] = 0;
+    s->pos_cov._value.cov[4] = 0;
+    s->pos_cov._value.cov[5] = cov_pos;
+
+    // Uncertainty on the estimated attitude.
+    // Based on vicon-genom3.
+    s->att_cov._present      = true;
+    s->att_cov._value.cov[0] = cov_twist * (1 - world_q_robot.w() * world_q_robot.w());
+    s->att_cov._value.cov[1] = cov_twist * -world_q_robot.w() * world_q_robot.x();
+    s->att_cov._value.cov[2] = cov_twist * (1 - world_q_robot.x() * world_q_robot.x());
+    s->att_cov._value.cov[3] = cov_twist * world_q_robot.w() * world_q_robot.y();
+    s->att_cov._value.cov[4] = cov_twist * -world_q_robot.x() * world_q_robot.y();
+    s->att_cov._value.cov[5] = cov_twist * (1 - world_q_robot.y() * world_q_robot.y());
+    s->att_cov._value.cov[6] = cov_twist * -world_q_robot.w() * world_q_robot.z();
+    s->att_cov._value.cov[7] = cov_twist * -world_q_robot.x() * world_q_robot.z();
+    s->att_cov._value.cov[8] = cov_twist * -world_q_robot.y() * world_q_robot.z();
+    s->att_cov._value.cov[9] = cov_twist * (1 - world_q_robot.z() * world_q_robot.z());
+
+    // Uncertainty on the estimated linear velocity.
+    s->vel_cov._present      = false;
+    // s->vel_cov._value.cov[0] = ids->uncertainties.linear_acc_cov * pow(10, 3 - confidence);
+    // s->vel_cov._value.cov[1] = 0;
+    // s->vel_cov._value.cov[2] = ids->uncertainties.linear_acc_cov * pow(10, 3 - confidence);
+    // s->vel_cov._value.cov[3] = 0;
+    // s->vel_cov._value.cov[4] = 0;
+    // s->vel_cov._value.cov[5] = ids->uncertainties.linear_acc_cov * pow(10, 3 - confidence);
+
+    // Uncertainty on the estimated angular velocity.
+    s->avel_cov._present      = false;
+    // s->avel_cov._value.cov[0] = ids->uncertainties.angular_vel_cov * pow(10, 2 - (int)confidence);
+    // s->avel_cov._value.cov[1] = 0;
+    // s->avel_cov._value.cov[2] = ids->uncertainties.angular_vel_cov * pow(10, 2 - (int)confidence);
+    // s->avel_cov._value.cov[3] = 0;
+    // s->avel_cov._value.cov[4] = 0;
+    // s->avel_cov._value.cov[5] = ids->uncertainties.angular_vel_cov * pow(10, 2 - (int)confidence);
+
+    // Uncertainty on the estimated linear acceleration.
+    s->acc_cov._present       = false;
+    // s->acc_cov._value.cov[0]  = ids->uncertainties.linear_acc_cov * pow(10, 3 - confidence);
+    // s->acc_cov._value.cov[1]  = 0;
+    // s->acc_cov._value.cov[2]  = ids->uncertainties.linear_acc_cov * pow(10, 3 - confidence);
+    // s->acc_cov._value.cov[3]  = 0;
+    // s->acc_cov._value.cov[4]  = 0;
+    // s->acc_cov._value.cov[5]  = ids->uncertainties.linear_acc_cov * pow(10, 3 - confidence);
+
+    // Uncertainty on the estimated angular acceleration.
+    s->aacc_cov._present      = false;
+    // s->aacc_cov._value.cov[0] = ids->uncertainties.angular_vel_cov * pow(10, 2 - (int)confidence);
+    // s->aacc_cov._value.cov[1] = 0;
+    // s->aacc_cov._value.cov[2] = ids->uncertainties.angular_vel_cov * pow(10, 2 - (int)confidence);
+    // s->aacc_cov._value.cov[3] = 0;
+    // s->aacc_cov._value.cov[4] = 0;
+    // s->aacc_cov._value.cov[5] = ids->uncertainties.angular_vel_cov * pow(10, 2 - (int)confidence);
 
     if(odom_state->write(self))
       std::cout << "Error" << std::endl;
