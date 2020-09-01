@@ -23,44 +23,51 @@ double tmp_nsec;
 /** Codel init_detector of task apriltag_detection.
  *
  * Triggered by T265_start.
- * Yields to T265_loop.
+ * Yields to T265_pause_start, T265_loop.
  */
 genom_event
-init_detector(const T265_realsense_grabber *rs_grabber,
+init_detector(bool detection_enabled,
+              const T265_realsense_grabber *rs_grabber,
               double *tag_size, T265_tags *detected_tags,
               const T265_port_tags *port_tags,
               const genom_context self)
 {
-  vpCameraParameters cam_left = rs_grabber->g.getCameraParameters(RS2_STREAM_FISHEYE, vpCameraParameters::ProjWithKannalaBrandtDistortion, 1);
-  cam_undistort.initPersProjWithoutDistortion(cam_left.get_px(), cam_left.get_py(), cam_left.get_u0(), cam_left.get_v0());
+  if(detection_enabled)
+  {
+    vpCameraParameters cam_left = rs_grabber->g.getCameraParameters(RS2_STREAM_FISHEYE, vpCameraParameters::ProjWithKannalaBrandtDistortion, 1);
+    cam_undistort.initPersProjWithoutDistortion(cam_left.get_px(), cam_left.get_py(), cam_left.get_u0(), cam_left.get_v0());
 
-  detector = new vpDetectorAprilTag(tagFamily);
+    detector = new vpDetectorAprilTag(tagFamily);
 
-  detector->setAprilTagQuadDecimate(1);
-  detector->setAprilTagPoseEstimationMethod(poseEstimationMethod);
-  detector->setAprilTagNbThreads(2);
-  detector->setDisplayTag(false, -1 < 0 ? vpColor::none : vpColor::getColor(-1), 2);
-  detector->setZAlignedWithCameraAxis(false);
+    detector->setAprilTagQuadDecimate(1);
+    detector->setAprilTagPoseEstimationMethod(poseEstimationMethod);
+    detector->setAprilTagNbThreads(2);
+    detector->setDisplayTag(false, -1 < 0 ? vpColor::none : vpColor::getColor(-1), 2);
+    detector->setZAlignedWithCameraAxis(false);
 
-  *tag_size = 0.08; // Default value for tag size.
+    *tag_size = 0.08; // Default value for tag size.
 
-  // IDS
-  //
-  detected_tags->_buffer = NULL;
-  detected_tags->_length = 0;
-  //
+    // IDS
+    //
+    detected_tags->_buffer = NULL;
+    detected_tags->_length = 0;
+    //
 
-  // OUTPORT
-  //
-  tags = port_tags->data(self);
-  tags->_buffer = NULL;
-  tags->_length = 0;
+    // OUTPORT
+    //
+    tags = port_tags->data(self);
+    tags->_buffer = NULL;
+    tags->_length = 0;
 
-  if(port_tags->write(self))
-    std::cout << "Error" << std::endl;
-  //
+    if(port_tags->write(self))
+      std::cout << "Error" << std::endl;
+    //
 
-  return T265_loop;
+    return T265_loop;
+  }
+
+  else
+    return T265_pause_start;
 }
 
 

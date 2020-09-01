@@ -18,26 +18,35 @@ vpCameraParameters left_cam_undistort;
 /** Codel init_display of task image_display.
  *
  * Triggered by T265_start.
- * Yields to T265_loop.
+ * Yields to T265_pause_start, T265_loop.
  */
 genom_event
-init_display(const T265_vp_image *I_left, const T265_vp_image *I_right,
+init_display(bool display_enabled, const T265_vp_image *I_left,
+             const T265_vp_image *I_right,
              const T265_vp_image *I_left_undistorted,
              const T265_vp_image *I_right_undistorted,
              const T265_realsense_grabber *rs_grabber,
              const genom_context self)
 {
-  display_left.init(const_cast<vpImage<unsigned char>&>(I_left->I), 10, 10, "Left image");
-  display_right.init(const_cast<vpImage<unsigned char>&>(I_right->I), static_cast<int>(I_left->I.getWidth()) + 80, 10, "Right image"); // Right
+  if(display_enabled)
+  {
+    display_left.init(const_cast<vpImage<unsigned char>&>(I_left->I), 10, 10, "Left image");
+    display_right.init(const_cast<vpImage<unsigned char>&>(I_right->I), static_cast<int>(I_left->I.getWidth()) + 80, 10, "Right image"); // Right
 
-  display_left_undist.init(const_cast<vpImage<unsigned char>&>(I_left_undistorted->I), 2*static_cast<int>(I_left->I.getWidth()/2), 10, "Left undistorted image");
-  display_right_undist.init(const_cast<vpImage<unsigned char>&>(I_right_undistorted->I), 3*static_cast<int>(I_right->I.getWidth()/2), 10, "Right undistorted image");
+    display_left_undist.init(const_cast<vpImage<unsigned char>&>(I_left_undistorted->I), 2*static_cast<int>(I_left->I.getWidth()/2), 10, "Left undistorted image");
+    display_right_undist.init(const_cast<vpImage<unsigned char>&>(I_right_undistorted->I), 3*static_cast<int>(I_right->I.getWidth()/2), 10, "Right undistorted image");
 
-  // cam_undistort used for frame display.
-  vpCameraParameters cam_left = rs_grabber->g.getCameraParameters(RS2_STREAM_FISHEYE, vpCameraParameters::ProjWithKannalaBrandtDistortion, 1);
-  left_cam_undistort.initPersProjWithoutDistortion(cam_left.get_px(), cam_left.get_py(), cam_left.get_u0(), cam_left.get_v0());
+    // cam_undistort used for frame display.
+    vpCameraParameters cam_left = rs_grabber->g.getCameraParameters(RS2_STREAM_FISHEYE, vpCameraParameters::ProjWithKannalaBrandtDistortion, 1);
+    left_cam_undistort.initPersProjWithoutDistortion(cam_left.get_px(), cam_left.get_py(), cam_left.get_u0(), cam_left.get_v0());
 
-  return T265_loop;
+    return T265_loop;
+  }
+
+  else
+  {
+    return T265_pause_start;
+  }
 }
 
 
@@ -120,11 +129,15 @@ stop_display(T265_realsense_grabber **rs_grabber,
 {
   *is_publishing = false; // Stop publishing
   (*rs_grabber)->g.close();
-  
-  vpDisplay::close((*I_left)->I);
-  vpDisplay::close((*I_right)->I);
-  vpDisplay::close((*I_left_undistorted)->I);
-  vpDisplay::close((*I_right_undistorted)->I);
+
+  if((*I_left) != NULL)
+    vpDisplay::close((*I_left)->I);
+  if((*I_right) != NULL)
+    vpDisplay::close((*I_right)->I);
+  if((*I_left_undistorted) != NULL)
+    vpDisplay::close((*I_left_undistorted)->I);
+  if((*I_right_undistorted) != NULL)
+    vpDisplay::close((*I_right_undistorted)->I);
 
   std::cout << "stop image display\n";
 

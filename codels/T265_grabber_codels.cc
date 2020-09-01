@@ -29,8 +29,8 @@ init_grabber(T265_ids *ids, const genom_context self)
   ids->pre_tf = new T265_vp_homogeneous_matrix;
   ids->post_tf = new T265_vp_homogeneous_matrix;
   ids->nb_display_coefficient = 1;
-  ids->display_enabled = true;
-  ids->detection_enabled = true;
+  ids->display_enabled = false;
+  ids->detection_enabled = false;
 
   // Configuring pipeline streams.
   rs2::config cfg;
@@ -144,11 +144,11 @@ init_grabber(T265_ids *ids, const genom_context self)
 
   ids->rs_grabber->g.open(cfg, callback);
 
-  ids->I_left->I.resize(ids->rs_grabber->g.getPipelineProfile().get_stream(RS2_STREAM_FISHEYE).as<rs2::video_stream_profile>().height(),
-                        ids->rs_grabber->g.getPipelineProfile().get_stream(RS2_STREAM_FISHEYE).as<rs2::video_stream_profile>().width());
+  ids->I_left->I.resize(ids->rs_grabber->g.getIntrinsics(RS2_STREAM_FISHEYE, 1).height,
+                        ids->rs_grabber->g.getIntrinsics(RS2_STREAM_FISHEYE, 1).width);
 
-  ids->I_right->I.resize(ids->rs_grabber->g.getPipelineProfile().get_stream(RS2_STREAM_FISHEYE).as<rs2::video_stream_profile>().height(),
-                         ids->rs_grabber->g.getPipelineProfile().get_stream(RS2_STREAM_FISHEYE).as<rs2::video_stream_profile>().width());
+  ids->I_right->I.resize(ids->rs_grabber->g.getIntrinsics(RS2_STREAM_FISHEYE, 2).height,
+                         ids->rs_grabber->g.getIntrinsics(RS2_STREAM_FISHEYE, 2).width);
 
   return T265_ether;
 }
