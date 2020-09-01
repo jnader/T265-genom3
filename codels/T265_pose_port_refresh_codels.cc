@@ -74,6 +74,12 @@ refresh_pose(bool is_publishing,
     s->ts.sec  = static_cast<int32_t>(odo_sec);
     s->ts.nsec = static_cast<int32_t>(odo_nsec);
 
+    // Intrinsic.
+    // Intrinsic = false, mainly because we are transforming velocity to world (base) frame.
+    // Isn't T265 pose measures considered intrinsic? In this case, intrinsic = true will cause
+    // problem because it is only dealing with magnetometers.
+    s->intrinsic = false;
+
     // Pose.
     s->pos._present = true;
     s->pos._value.x = world_t_robot[0];
@@ -84,26 +90,26 @@ refresh_pose(bool is_publishing,
     s->att._value.qx = world_q_robot[0];
     s->att._value.qy = world_q_robot[1];
     s->att._value.qz = world_q_robot[2];
-    s->att._value.qz = world_q_robot[3];
+    s->att._value.qw = world_q_robot[3];
 
     // Velocity.
-    s->vel._present = true;
+    s->vel._present = false;
     s->vel._value.vx = poseref_odo_sensor->vel[0];
     s->vel._value.vy = poseref_odo_sensor->vel[1];
     s->vel._value.vz = poseref_odo_sensor->vel[2];
 
-    s->avel._present = true;
+    s->avel._present = false;
     s->avel._value.wx = poseref_odo_sensor->vel[3];
     s->avel._value.wy = poseref_odo_sensor->vel[4];
     s->avel._value.wz = poseref_odo_sensor->vel[5];
 
     // Acceleration.
-    s->acc._present = true;
+    s->acc._present = false;
     s->acc._value.ax = poseref_odo_sensor->acc[0];
     s->acc._value.ay = poseref_odo_sensor->acc[1];
     s->acc._value.az = poseref_odo_sensor->acc[2];
 
-    s->aacc._present = true;
+    s->aacc._present = false;
     s->aacc._value.awx = poseref_odo_sensor->acc[3];
     s->aacc._value.awy = poseref_odo_sensor->acc[4];
     s->aacc._value.awz = poseref_odo_sensor->acc[5];
@@ -115,7 +121,7 @@ refresh_pose(bool is_publishing,
 
     // Should be tested multiple times.
     cov_pos   = 0.0009 * 0.0009;
-    double cov_twist = 0.0019 * 0.0019;
+    cov_twist = 0.0019 * 0.0019;
 
     // Uncertainty on the estimated position.
     s->pos_cov._present  = true;
