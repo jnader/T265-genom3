@@ -195,6 +195,37 @@ Disable detection.
 
 '''
 
+[[log]]
+=== log (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `string<64>` `path` (default `"/tmp/T265.log"`) : Log file name
+
+ * `unsigned long` `decimation` (default `"1"`) : Reduced logging frequency
+
+a|.Throws
+[disc]
+ * `exception ::T265::e_sys`
+ ** `short` `code`
+ ** `string<128>` `what`
+
+|===
+
+Log odometry data
+
+'''
+
+[[log_stop]]
+=== log_stop (function)
+
+
+Stop logging
+
+'''
+
 == Tasks
 
 [[grabber]]

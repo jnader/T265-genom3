@@ -42,7 +42,7 @@ init_port(const T265_odom_state *odom_state, const genom_context self)
  * Yields to T265_pause_loop, T265_stop.
  */
 genom_event
-refresh_pose(bool is_publishing,
+refresh_pose(T265_log_s **log, bool is_publishing,
              const T265_realsense_grabber *rs_grabber,
              const T265_vp_odometry *poseref_odo_sensor,
              const T265_vp_homogeneous_matrix *pre_tf,
@@ -184,6 +184,10 @@ refresh_pose(bool is_publishing,
 
     if(odom_state->write(self))
       std::cout << "Error" << std::endl;
+
+    // Log data
+    T265_main_log(*s, 3, *log);
+
   }
 
   return T265_pause_loop;

@@ -129,3 +129,58 @@ disable_detection_codel(bool *detection_enabled,
   *detection_enabled = false;
   return genom_ok;
 }
+
+
+/* --- Function log ----------------------------------------------------- */
+
+/** Codel T265_log of function log.
+ *
+ * Returns genom_ok.
+ * Throws T265_e_sys.
+ */
+genom_event
+T265_log(const char path[64], uint32_t decimation, T265_log_s **log,
+         const genom_context self)
+{
+  int fd;
+
+  fd = open(path, O_WRONLY|O_APPEND|O_CREAT|O_TRUNC, 0666);
+  if (fd < 0) return T265_e_sys_error(path, self);
+
+  if (write(fd, T265_log_header_fmt "\n", sizeof(T265_log_header_fmt)) < 0)
+      return T265_e_sys_error(path, self);
+
+  if ((*log)->req.aio_fildes >= 0) {
+      close((*log)->req.aio_fildes);
+
+      if ((*log)->pending)
+      while (aio_error(&(*log)->req) == EINPROGRESS)
+          /* empty body */;
+  }
+
+  (*log)->req.aio_fildes = fd;
+  (*log)->pending = false;
+  (*log)->skipped = false;
+  (*log)->decimation = decimation < 1 ? 1 : decimation;
+  (*log)->missed = 0;
+  (*log)->total = 0;
+
+  return genom_ok;
+}
+
+
+/* --- Function log_stop ------------------------------------------------ */
+
+/** Codel T265_log_stop of function log_stop.
+ *
+ * Returns genom_ok.
+ */
+genom_event
+T265_log_stop(T265_log_s **log, const genom_context self)
+{
+  if (*log && (*log)->req.aio_fildes >= 0)
+  close((*log)->req.aio_fildes);
+  (*log)->req.aio_fildes = -1;
+
+  return genom_ok;
+}

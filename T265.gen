@@ -16,6 +16,9 @@ component T265
     native vp_image;
     native vp_homogeneous_matrix;
     native vp_odometry;
+    native log_s;
+
+    exception e_sys { short code; string<128> what; };
 
     typedef sequence<apriltag::tag> tags;
 
@@ -61,6 +64,9 @@ component T265
         boolean is_publishing, display_enabled, detection_enabled;
         short nb_display_coefficient;
         vp_homogeneous_matrix pre_tf, post_tf;
+
+        /* logging */
+        log_s log;
     };
 
 /******************** FUNCTIONS ********************/
@@ -108,6 +114,22 @@ component T265
         codel disable_detection_codel(out detection_enabled);
     };
 
+/* -------------------LOGGING-----------------------------*/
+    function log(in string<64> path = "/tmp/T265.log": ": Log file name",
+                in unsigned long decimation = 1: ": Reduced logging frequency") {
+        doc		"Log odometry data";
+
+        codel T265_log(in path, in decimation, inout log);
+
+        throw e_sys;
+    };
+
+    function log_stop() {
+        doc		"Stop logging";
+
+        codel T265_log_stop(out log);
+    };
+
 /******************** TASKS ********************/
     task grabber
     {
@@ -124,7 +146,7 @@ component T265
 
         codel<start> init_port(out odom_state)
             yield loop;
-        codel<loop> refresh_pose(in is_publishing, in rs_grabber, in poseref_odo_sensor, in pre_tf, in post_tf, out odom_state)
+        codel<loop> refresh_pose(out log, in is_publishing, in rs_grabber, in poseref_odo_sensor, in pre_tf, in post_tf, out odom_state)
             yield pause::loop, stop;
         codel<stop> stop_pose_display(out poseref_odo_sensor, out pre_tf, out post_tf)
             yield ether;
