@@ -120,8 +120,8 @@ refresh_pose(T265_log_s **log, bool is_publishing,
     // double cov_twist = ids->uncertainties.angular_vel_cov * static_cast<double>(pow(10.0, static_cast<double>(1 - (int)confidence)));
 
     // Should be tested multiple times.
-    cov_pos   = 0.0009 * 0.0009;
-    cov_twist = 0.0019 * 0.0019;
+    cov_pos   = 0.0005 * 0.0005 * 10;
+    cov_twist = 0.0005 * 0.0005 * 100;
 
     // Uncertainty on the estimated position.
     s->pos_cov._present  = true;
@@ -186,7 +186,7 @@ refresh_pose(T265_log_s **log, bool is_publishing,
       std::cout << "Error" << std::endl;
 
     // Log data
-    T265_main_log(*s, 3, *log);
+    T265_main_log(*s, poseref_odo_sensor->tracker_confidence, *log);
 
   }
 
