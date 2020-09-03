@@ -83,13 +83,14 @@ struct T265_log_s {
 
 # define T265_logfmt	" %g"
 # define T265_log_header_fmt                                                                \
-  "ts confidence "                                                                           \
+  "cpu_ts rs_ts confidence "                                                                           \
   "x y z roll pitch yaw "                                                                    \
   "vx vy vz wx wy wz ax ay az aaz aay aaz"
   /*"x y z qx qy qz qw "                                                                     \*/
 
 # define T265_log_fmt                                                                       \
-  "%d.%09d"                                                                                  \
+  "%d.%06d"                                                                                  \
+  " %d.%09d"                                                                                  \
   " %d"                                                                                      \
   T265_logfmt T265_logfmt T265_logfmt T265_logfmt T265_logfmt T265_logfmt              \
   T265_logfmt T265_logfmt T265_logfmt T265_logfmt T265_logfmt T265_logfmt              \
@@ -143,14 +144,18 @@ T265_main_log(const or_pose_estimator_state &s, unsigned int confidence, T265_lo
       pitch = asin(2 * (qw*qy - qz*qx)),
       yaw   = atan2(2 * (qw*qz + qx*qy), 1 - 2 * (qy*qy + qz*qz));
 
+    
       // pitch =  -asin(2.0 * (-qz*(-qy) - qw*qx)) * 180.0 / M_PI,
       // roll  =  -atan2(2.0 * (qw*(-qz) + qx*(-qy)), qw*qw - (-qz)*(-qz) - qx*qx + (-qy)*(-qy)) * 180.0 / M_PI,
       // yaw   =  -atan2(2.0 * (qw*(-qy) + (-qz)*qx), qw*qw + (-qz)*(-qz) - qx*qx - (-qy)*(-qy)) * 180.0 / M_PI;
+    timeval tmp_tv;
+    gettimeofday(&tmp_tv, NULL);
 
     log->req.aio_nbytes = snprintf(
       log->buffer, sizeof(log->buffer),
       "%s" T265_log_fmt "\n",
       log->skipped ? "\n" : "",
+      tmp_tv.tv_sec, tmp_tv.tv_usec,
       s.ts.sec, s.ts.nsec, confidence, x, y, z, roll, pitch, yaw, //qx, qy, qz, qw,
       vx, vy, vz, wx, wy, wz,
       ax, ay, az, aax, aay, aaz);

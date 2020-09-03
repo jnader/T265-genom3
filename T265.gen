@@ -135,7 +135,7 @@ component T265
     {
         doc "This task will initialize grabbing mechanism used to retrieve data from T265 sensor.";
 
-        codel<start> init_grabber(out ::ids) yield ether;
+        codel<start> init_grabber(out ::ids) yield pause::start, ether;
     };
 
     task pose_port_refresh
@@ -148,7 +148,7 @@ component T265
             yield loop;
         codel<loop> refresh_pose(out log, in is_publishing, in rs_grabber, in poseref_odo_sensor, in pre_tf, in post_tf, out odom_state)
             yield pause::loop, stop;
-        codel<stop> stop_pose_display(out poseref_odo_sensor, out pre_tf, out post_tf)
+        codel<stop> stop_pose_display(out poseref_odo_sensor, out pre_tf, out post_tf, out log)
             yield ether;
     };
 
@@ -158,8 +158,8 @@ component T265
 
         period 33ms;
 
-        codel<start> init_undist_images(in I_left, in I_right, in rs_grabber, out I_left_undistorted, out I_right_undistorted)
-            yield loop;
+        codel<start> init_undist_images(in detection_enabled, in I_left, in I_right, in rs_grabber, out I_left_undistorted, out I_right_undistorted)
+            yield pause::start, loop;
         codel<loop>  undistort_images(in is_publishing, in I_left, in I_right, out I_left_undistorted, out I_right_undistorted)
             yield pause::loop, stop;
         codel<stop>  stop_image_undistort(out I_left_undistorted, out I_right_undistorted)

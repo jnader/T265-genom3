@@ -33,8 +33,10 @@ init_display(bool display_enabled, const T265_vp_image *I_left,
     display_left.init(const_cast<vpImage<unsigned char>&>(I_left->I), 10, 10, "Left image");
     display_right.init(const_cast<vpImage<unsigned char>&>(I_right->I), static_cast<int>(I_left->I.getWidth()) + 80, 10, "Right image"); // Right
 
-    display_left_undist.init(const_cast<vpImage<unsigned char>&>(I_left_undistorted->I), 2*static_cast<int>(I_left->I.getWidth()/2), 10, "Left undistorted image");
-    display_right_undist.init(const_cast<vpImage<unsigned char>&>(I_right_undistorted->I), 3*static_cast<int>(I_right->I.getWidth()/2), 10, "Right undistorted image");
+    if(I_left_undistorted != NULL)
+      display_left_undist.init(const_cast<vpImage<unsigned char>&>(I_left_undistorted->I), 2*static_cast<int>(I_left->I.getWidth()/2), 10, "Left undistorted image");
+    if(I_right_undistorted != NULL)
+      display_right_undist.init(const_cast<vpImage<unsigned char>&>(I_right_undistorted->I), 3*static_cast<int>(I_right->I.getWidth()/2), 10, "Right undistorted image");
 
     // cam_undistort used for frame display.
     vpCameraParameters cam_left = rs_grabber->g.getCameraParameters(RS2_STREAM_FISHEYE, vpCameraParameters::ProjWithKannalaBrandtDistortion, 1);
@@ -67,14 +69,23 @@ refresh_display(bool is_publishing, bool display_enabled,
 {
   if(is_publishing && display_enabled && (image_count % nb_display_coefficient == 0))
   {
-    vpDisplay::display(I_left->I);
-    vpDisplay::display(I_right->I);
+    if(I_left != NULL)
+    {
+      vpDisplay::display(I_left->I);
+      vpDisplay::displayText(I_left->I, 30, 30, "Click to quit", vpColor::red);
+    }
 
-    vpDisplay::display(I_left_undistorted->I);
-    vpDisplay::display(I_right_undistorted->I);
+    if(I_right != NULL)
+    {
+      vpDisplay::display(I_right->I);
+      vpDisplay::displayText(I_right->I, 30, 30, "Click to quit", vpColor::red);
+    }
 
-    vpDisplay::displayText(I_left->I, 30, 30, "Click to quit", vpColor::red);
-    vpDisplay::displayText(I_right->I, 30, 30, "Click to quit", vpColor::red);
+    if(I_left_undistorted != NULL)
+      vpDisplay::display(I_left_undistorted->I);
+    if(I_right_undistorted != NULL)
+      vpDisplay::display(I_right_undistorted->I);
+
 
     if(detected_tags->_buffer != NULL && detection_enabled) // Displaying AprilTag centers, corners, pose and message.
     {
@@ -100,15 +111,18 @@ refresh_display(bool is_publishing, bool display_enabled,
       }
     }
 
-    if (vpDisplay::getClick(I_left->I, false) || vpDisplay::getClick(I_right->I, false) ||
-        vpDisplay::getClick(I_left_undistorted->I, false) || vpDisplay::getClick(I_right_undistorted->I, false)) {
+    if (vpDisplay::getClick(I_left->I, false) || vpDisplay::getClick(I_right->I, false)) {
         return T265_stop;
     }
 
-    vpDisplay::flush(I_left->I);
-    vpDisplay::flush(I_right->I);
-    vpDisplay::flush(I_left_undistorted->I);
-    vpDisplay::flush(I_right_undistorted->I);
+    if(I_left != NULL)
+      vpDisplay::flush(I_left->I);
+    if(I_right != NULL)
+      vpDisplay::flush(I_right->I);
+    if(I_left_undistorted != NULL)
+      vpDisplay::flush(I_left_undistorted->I);
+    if(I_right_undistorted != NULL)
+      vpDisplay::flush(I_right_undistorted->I);
   }
 
   return T265_pause_loop;

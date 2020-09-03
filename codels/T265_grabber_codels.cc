@@ -10,58 +10,65 @@ long sec;
 double timestamp, nsec;
 vpTranslationVector ctw;
 vpQuaternionVector cqw;
+rs2::config cfg;
+std::function<void(rs2::frame)> callback;
 
 /** Codel init_grabber of task grabber.
  *
  * Triggered by T265_start.
- * Yields to T265_ether.
+ * Yields to T265_pause_start, T265_ether.
  */
 genom_event
 init_grabber(T265_ids *ids, const genom_context self)
 {
-  ids->is_publishing = true; // Default start publishing.
-  ids->rs_grabber = new T265_realsense_grabber;
-  ids->I_left = new T265_vp_image;
-  ids->I_right = new T265_vp_image;
-  ids->poseref_odo_sensor = new T265_vp_odometry;
-  ids->poseref_odo_sensor->vel.resize(6);
-  ids->poseref_odo_sensor->acc.resize(6);
-  ids->pre_tf = new T265_vp_homogeneous_matrix;
-  ids->post_tf = new T265_vp_homogeneous_matrix;
-  ids->nb_display_coefficient = 1;
-  ids->display_enabled = false;
-  ids->detection_enabled = false;
+  if(ids->rs_grabber == NULL)
+    ids->rs_grabber = new T265_realsense_grabber;
+  if(ids->I_left == NULL)
+    ids->I_left = new T265_vp_image;
+  if(ids->I_right == NULL)
+    ids->I_right = new T265_vp_image;
+  if(ids->poseref_odo_sensor == NULL)
+  {
+    ids->poseref_odo_sensor = new T265_vp_odometry;
+    ids->poseref_odo_sensor->vel.resize(6);
+    ids->poseref_odo_sensor->acc.resize(6);
+  }
+
+  if(ids->pre_tf == NULL)
+    ids->pre_tf = new T265_vp_homogeneous_matrix;
+  if(ids->post_tf == NULL)
+    ids->post_tf = new T265_vp_homogeneous_matrix;
 
   /* start logging variables*/
-  ids->log = new T265_log_s;
-  if (!ids->log) abort();
+  if(ids->log == NULL)
+  {
+    ids->log = new T265_log_s;
+    if (!ids->log) abort();
 
-  ids->log->req.aio_fildes = -1;
-  ids->log->req.aio_offset = 0;
-  ids->log->req.aio_buf = ids->log->buffer;
-  ids->log->req.aio_nbytes = 0;
-  ids->log->req.aio_reqprio = 0;
-  ids->log->req.aio_sigevent.sigev_notify = SIGEV_NONE;
-  ids->log->req.aio_lio_opcode = LIO_NOP;
-  ids->log->pending = false;
-  ids->log->skipped = false;
-  ids->log->decimation = 1;
-  ids->log->missed = 0;
-  ids->log->total = 0;
+    ids->log->req.aio_fildes = -1;
+    ids->log->req.aio_offset = 0;
+    ids->log->req.aio_buf = ids->log->buffer;
+    ids->log->req.aio_nbytes = 0;
+    ids->log->req.aio_reqprio = 0;
+    ids->log->req.aio_sigevent.sigev_notify = SIGEV_NONE;
+    ids->log->req.aio_lio_opcode = LIO_NOP;
+    ids->log->pending = false;
+    ids->log->skipped = false;
+    ids->log->decimation = 1;
+    ids->log->missed = 0;
+    ids->log->total = 0;
+  }
 
   // Configuring pipeline streams.
-  rs2::config cfg;
-  // cfg.enable_all_streams();
   cfg.enable_stream(RS2_STREAM_POSE, RS2_FORMAT_6DOF);
   cfg.enable_stream(RS2_STREAM_FISHEYE, 1, RS2_FORMAT_Y8);
   cfg.enable_stream(RS2_STREAM_FISHEYE, 2, RS2_FORMAT_Y8);
   // cfg.enable_stream(RS2_STREAM_ACCEL);
   // cfg.enable_stream(RS2_STREAM_GYRO);
 
-  std::function<void(rs2::frame)> callback = [&](const rs2::frame& frame)
+  callback = [&](const rs2::frame& frame)
   {
     timestamp = frame.get_timestamp();
-    ids->frame_nb = frame.get_frame_number();
 
     if (rs2::frameset fs = frame.as<rs2::frameset>())
     {
@@ -83,11 +90,11 @@ init_grabber(T265_ids *ids, const genom_context self)
       ctw = vpTranslationVector(static_cast<double>(pose_data.translation.x),
                               static_cast<double>(pose_data.translation.y),
                               static_cast<double>(pose_data.translation.z));
-      
+
       cqw = vpQuaternionVector(static_cast<double>(pose_data.rotation.x),
-                             static_cast<double>(pose_data.rotation.y),
-                             static_cast<double>(pose_data.rotation.z),
-                             static_cast<double>(pose_data.rotation.w));
+                            static_cast<double>(pose_data.rotation.y),
+                            static_cast<double>(pose_data.rotation.z),
+                            static_cast<double>(pose_data.rotation.w));
 
       // Timestamp.
       ids->poseref_odo_sensor->timestamp = timestamp;
@@ -124,11 +131,11 @@ init_grabber(T265_ids *ids, const genom_context self)
       ctw = vpTranslationVector(static_cast<double>(pose_data.translation.x),
                               static_cast<double>(pose_data.translation.y),
                               static_cast<double>(pose_data.translation.z));
-      
+
       cqw = vpQuaternionVector(static_cast<double>(pose_data.rotation.x),
-                             static_cast<double>(pose_data.rotation.y),
-                             static_cast<double>(pose_data.rotation.z),
-                             static_cast<double>(pose_data.rotation.w));
+                            static_cast<double>(pose_data.rotation.y),
+                            static_cast<double>(pose_data.rotation.z),
+                            static_cast<double>(pose_data.rotation.w));
 
       // Timestamp.
       ids->poseref_odo_sensor->timestamp = timestamp;
@@ -159,13 +166,24 @@ init_grabber(T265_ids *ids, const genom_context self)
     }
   };
 
-  ids->rs_grabber->g.open(cfg, callback);
+  if(ids->is_publishing)
+  {
+    // Start publishing => open() vpRealSense2 object and start.
+    ids->rs_grabber->g.open(cfg, callback);
 
-  ids->I_left->I.resize(ids->rs_grabber->g.getIntrinsics(RS2_STREAM_FISHEYE, 1).height,
-                        ids->rs_grabber->g.getIntrinsics(RS2_STREAM_FISHEYE, 1).width);
+    ids->I_left->I.resize(ids->rs_grabber->g.getIntrinsics(RS2_STREAM_FISHEYE, 1).height,
+                          ids->rs_grabber->g.getIntrinsics(RS2_STREAM_FISHEYE, 1).width);
 
-  ids->I_right->I.resize(ids->rs_grabber->g.getIntrinsics(RS2_STREAM_FISHEYE, 2).height,
-                         ids->rs_grabber->g.getIntrinsics(RS2_STREAM_FISHEYE, 2).width);
+    ids->I_right->I.resize(ids->rs_grabber->g.getIntrinsics(RS2_STREAM_FISHEYE, 2).height,
+                          ids->rs_grabber->g.getIntrinsics(RS2_STREAM_FISHEYE, 2).width);
 
-  return T265_ether;
+    ids->nb_display_coefficient = 1;
+    ids->display_enabled = false;
+    ids->detection_enabled = false;
+
+    return T265_ether;
+  }
+
+  else
+    return T265_pause_start;
 }

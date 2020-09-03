@@ -203,8 +203,9 @@ genom_event
 stop_pose_display(T265_vp_odometry **poseref_odo_sensor,
                   T265_vp_homogeneous_matrix **pre_tf,
                   T265_vp_homogeneous_matrix **post_tf,
-                  const genom_context self)
+                  T265_log_s **log, const genom_context self)
 {
+  delete (*log);
   delete (*poseref_odo_sensor);
   delete (*pre_tf);
   delete (*post_tf);
