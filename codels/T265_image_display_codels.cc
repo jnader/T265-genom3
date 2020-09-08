@@ -69,6 +69,13 @@ refresh_display(bool is_publishing, bool display_enabled,
 {
   if(is_publishing && display_enabled && (image_count % nb_display_coefficient == 0))
   {
+    // Initialize display of undistorted image if not yet initialized and undistorted images exist.
+    if(!display_left_undist.isInitialised() && I_left_undistorted != NULL)
+      display_left_undist.init(const_cast<vpImage<unsigned char>&>(I_left_undistorted->I), 2*static_cast<int>(I_left->I.getWidth()/2), 10, "Left undistorted image");
+
+    if(!display_right_undist.isInitialised() && I_right_undistorted != NULL)
+      display_right_undist.init(const_cast<vpImage<unsigned char>&>(I_right_undistorted->I), 4*static_cast<int>(I_right->I.getWidth()/2), 10, "Right undistorted image");
+
     if(I_left != NULL)
     {
       vpDisplay::display(I_left->I);

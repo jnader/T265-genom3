@@ -152,32 +152,17 @@ component T265
             yield ether;
     };
 
-    task undistort_images
-    {
-        doc "Task for undistorting images.";
-
-        period 33ms;
-
-        codel<start> init_undist_images(in detection_enabled, in I_left, in I_right, in rs_grabber, out I_left_undistorted, out I_right_undistorted)
-            yield pause::start, loop;
-        codel<loop>  undistort_images(in is_publishing, in I_left, in I_right, out I_left_undistorted, out I_right_undistorted)
-            yield pause::loop, stop;
-        codel<stop>  stop_image_undistort(out I_left_undistorted, out I_right_undistorted)
-            yield ether;
-    };
-
     task apriltag_detection
     {
         doc "AprilTag detection.";
 
         period 33 ms;
-        delay 1 ms;
 
-        codel<start> init_detector(in detection_enabled, in rs_grabber, out tag_size, out detected_tags, out port_tags)
+        codel<start> init_detector(in detection_enabled, in rs_grabber, in I_left, in I_right, out tag_size, out detected_tags, out port_tags, out I_left_undistorted, out I_right_undistorted)
             yield pause::start, loop;
-        codel<loop>  loop_detector(in detection_enabled, in is_publishing, in I_left_undistorted, in tag_size, out detected_tags, out port_tags)
+        codel<loop>  loop_detector(in detection_enabled, in is_publishing, in I_left, in I_right, inout I_left_undistorted, inout I_right_undistorted, in tag_size, out detected_tags, out port_tags)
             yield pause::loop, stop;
-        codel<stop>  kill_detector(out detected_tags)
+        codel<stop>  kill_detector(out detected_tags, out I_left_undistorted, out I_right_undistorted)
             yield ether;
     };
 

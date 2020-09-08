@@ -14,6 +14,9 @@ std::vector<int> tag_ids;
 vpImagePoint center;
 vpTranslationVector cto;
 vpQuaternionVector cqo;
+vpArray2D<int> mapU_left, mapV_left, mapU_right, mapV_right;
+vpArray2D<float> mapDu_left, mapDv_left, mapDu_right, mapDv_right;
+vpCameraParameters cam_left, cam_right;
 
 T265_tags *tags;
 
@@ -28,12 +31,28 @@ double tmp_nsec;
 genom_event
 init_detector(bool detection_enabled,
               const T265_realsense_grabber *rs_grabber,
-              double *tag_size, T265_tags *detected_tags,
+              const T265_vp_image *I_left,
+              const T265_vp_image *I_right, double *tag_size,
+              T265_tags *detected_tags,
               const T265_port_tags *port_tags,
+              T265_vp_image **I_left_undistorted,
+              T265_vp_image **I_right_undistorted,
               const genom_context self)
 {
   if(detection_enabled)
   {
+    (*I_left_undistorted)  = new T265_vp_image;
+    (*I_right_undistorted) = new T265_vp_image;
+
+    (*I_left_undistorted)->I.resize(I_left->I.getHeight(), I_left->I.getWidth());
+    (*I_right_undistorted)->I.resize(I_right->I.getHeight(), I_right->I.getWidth());
+
+    cam_left  = rs_grabber->g.getCameraParameters(RS2_STREAM_FISHEYE, vpCameraParameters::ProjWithKannalaBrandtDistortion, 1);
+    cam_right = rs_grabber->g.getCameraParameters(RS2_STREAM_FISHEYE, vpCameraParameters::ProjWithKannalaBrandtDistortion, 2);
+
+    vpImageTools::initUndistortMap(cam_left, I_left->I.getWidth(), I_left->I.getHeight(), mapU_left, mapV_left, mapDu_left, mapDv_left);
+    vpImageTools::initUndistortMap(cam_right, I_right->I.getWidth(), I_right->I.getHeight(), mapU_right, mapV_right, mapDu_right, mapDv_right);
+
     vpCameraParameters cam_left = rs_grabber->g.getCameraParameters(RS2_STREAM_FISHEYE, vpCameraParameters::ProjWithKannalaBrandtDistortion, 1);
     cam_undistort.initPersProjWithoutDistortion(cam_left.get_px(), cam_left.get_py(), cam_left.get_u0(), cam_left.get_v0());
 
@@ -78,16 +97,25 @@ init_detector(bool detection_enabled,
  */
 genom_event
 loop_detector(bool detection_enabled, bool is_publishing,
-              const T265_vp_image *I_left_undistorted, double tag_size,
+              const T265_vp_image *I_left,
+              const T265_vp_image *I_right,
+              T265_vp_image **I_left_undistorted,
+              T265_vp_image **I_right_undistorted, double tag_size,
               T265_tags *detected_tags,
               const T265_port_tags *port_tags,
               const genom_context self)
 {
   if(is_publishing && detection_enabled)
   {
+    vpImageTools::undistort(I_left->I, mapU_left, mapV_left, mapDu_left, mapDv_left, (*I_left_undistorted)->I);
+    vpImageTools::undistort(I_right->I, mapU_right, mapV_right, mapDu_right, mapDv_right, (*I_right_undistorted)->I);
+
+    (*I_left_undistorted)->timestamp = I_left->timestamp;
+    (*I_right_undistorted)->timestamp = I_right->timestamp;
+
     cMo_vec.clear();
 
-    detector->detect(I_left_undistorted->I, tag_size, cam_undistort, cMo_vec);
+    detector->detect((*I_left_undistorted)->I, tag_size, cam_undistort, cMo_vec);
 
     if(cMo_vec.size() == 0) // No tags detected in this iteration, release the buffer of detected_tags.
     {
@@ -130,8 +158,8 @@ loop_detector(bool detection_enabled, bool is_publishing,
       // Filling detected_tags data structure.
       for(int i = 0; i < cMo_vec.size(); i++)
       {
-        tmp_sec    = I_left_undistorted->timestamp / 1000;
-        tmp_nsec = ((long)I_left_undistorted->timestamp % 1000) * 1000000;
+        tmp_sec    = (*I_left_undistorted)->timestamp / 1000;
+        tmp_nsec = ((long)(*I_left_undistorted)->timestamp % 1000) * 1000000;
 
         // Save timestamp of image as timestamp of apriltag.
         detected_tags->_buffer[i].ts.sec  = static_cast<int32_t>(tmp_sec);
@@ -216,8 +244,14 @@ loop_detector(bool detection_enabled, bool is_publishing,
  * Yields to T265_ether.
  */
 genom_event
-kill_detector(T265_tags *detected_tags, const genom_context self)
+kill_detector(T265_tags *detected_tags,
+              T265_vp_image **I_left_undistorted,
+              T265_vp_image **I_right_undistorted,
+              const genom_context self)
 {
+  delete (*I_left_undistorted);
+  delete (*I_right_undistorted);
+
   delete detector;
   detector = NULL;
 
