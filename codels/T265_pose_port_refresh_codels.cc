@@ -4,6 +4,8 @@
 
 
 /* --- Task pose_port_refresh ------------------------------------------- */
+
+
 double odo_sec, odo_nsec;
 vpHomogeneousMatrix world_M_robot;
 vpTranslationVector world_t_robot;
@@ -18,8 +20,21 @@ double cov_pos, cov_twist;
  * Yields to T265_loop.
  */
 genom_event
-init_port(const T265_odom_state *odom_state, const genom_context self)
+init_port(T265_ids *ids, const T265_odom_state *odom_state,
+          const genom_context self)
 {
+  ids->is_publishing = true; // Wait for it to be true to switch to loop codel.
+  ids->rs_grabber = NULL;
+  ids->I_left = NULL;
+  ids->I_right = NULL;
+  ids->I_left_undistorted = NULL;
+  ids->I_right_undistorted = NULL;
+  ids->poseref_odo_sensor = NULL;
+  ids->pre_tf = NULL;
+  ids->post_tf = NULL;
+  ids->log = NULL;
+
+  // Output pose port.
   or_pose_estimator_state *s = odom_state->data(self);
 
   s->pos._present = true;
@@ -29,8 +44,48 @@ init_port(const T265_odom_state *odom_state, const genom_context self)
   s->acc._present  = true;
   s->aacc._present = true;
 
+  // 0 values to be added.
+
   if(odom_state->write(self))
     std::cout << "Error" << std::endl;
+
+  if(ids->rs_grabber == NULL)
+    ids->rs_grabber = new T265_realsense_grabber;
+  if(ids->I_left == NULL)
+    ids->I_left = new T265_vp_image;
+  if(ids->I_right == NULL)
+    ids->I_right = new T265_vp_image;
+  if(ids->poseref_odo_sensor == NULL)
+  {
+    ids->poseref_odo_sensor = new T265_vp_odometry;
+    ids->poseref_odo_sensor->vel.resize(6);
+    ids->poseref_odo_sensor->acc.resize(6);
+  }
+
+  if(ids->pre_tf == NULL)
+    ids->pre_tf = new T265_vp_homogeneous_matrix;
+  if(ids->post_tf == NULL)
+    ids->post_tf = new T265_vp_homogeneous_matrix;
+
+  /* start logging variables*/
+  if(ids->log == NULL)
+  {
+    ids->log = new T265_log_s;
+    if (!ids->log) abort();
+
+    ids->log->req.aio_fildes = -1;
+    ids->log->req.aio_offset = 0;
+    ids->log->req.aio_buf = ids->log->buffer;
+    ids->log->req.aio_nbytes = 0;
+    ids->log->req.aio_reqprio = 0;
+    ids->log->req.aio_sigevent.sigev_notify = SIGEV_NONE;
+    ids->log->req.aio_lio_opcode = LIO_NOP;
+    ids->log->pending = false;
+    ids->log->skipped = false;
+    ids->log->decimation = 1;
+    ids->log->missed = 0;
+    ids->log->total = 0;
+  }
 
   return T265_loop;
 }

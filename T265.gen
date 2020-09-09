@@ -74,7 +74,7 @@ component T265
     {
         doc "Start retreiving data from T265 sensor. (To be used after pause_publish)";
 
-        codel start_publish(out is_publishing);
+        codel start_publish(out ::ids);
     };
 
     function pause_publishing()
@@ -131,20 +131,13 @@ component T265
     };
 
 /******************** TASKS ********************/
-    task grabber
-    {
-        doc "This task will initialize grabbing mechanism used to retrieve data from T265 sensor.";
-
-        codel<start> init_grabber(out ::ids) yield pause::start, ether;
-    };
-
     task pose_port_refresh
     {
         doc "This task is used to refresh pose output port at 200Hz.";
 
         period 5ms;
 
-        codel<start> init_port(out odom_state)
+        codel<start> init_port(out ::ids, out odom_state)
             yield loop;
         codel<loop> refresh_pose(out log, in is_publishing, in rs_grabber, in poseref_odo_sensor, in pre_tf, in post_tf, out odom_state)
             yield pause::loop, stop;

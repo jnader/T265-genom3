@@ -267,6 +267,7 @@ a|.Context
 * Updates port `<<odom_state>>`
 |===
 
+This task will create and launch the interface with Intel RealSense T265 device.
 This task is used to refresh pose output port at 200Hz.
 
 '''
