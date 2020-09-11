@@ -23,7 +23,7 @@ genom_event
 init_port(T265_ids *ids, const T265_odom_state *odom_state,
           const genom_context self)
 {
-  ids->is_publishing = true; // Wait for it to be true to switch to loop codel.
+  ids->is_publishing = false; // Wait for it to be true to switch to loop codel.
   ids->rs_grabber = NULL;
   ids->I_left = NULL;
   ids->I_right = NULL;
