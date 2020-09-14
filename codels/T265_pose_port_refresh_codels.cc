@@ -45,6 +45,12 @@ init_port(T265_ids *ids, const T265_odom_state *odom_state,
   s->aacc._present = true;
 
   // 0 values to be added.
+  s->pos._value = {.x = 0., .y = 0., .z = 0.};
+  s->vel._value = {.vx = 0., .vy = 0., .vz = 0.};
+  s->acc._value = {.ax = 0., .ay = 0., .az = 0.};
+  s->att._value.qx = 0.; s->att._value.qy = 0.; s->att._value.qz = 0.; s->att._value.qw = 1.;
+  s->avel._value.wx = 0.; s->avel._value.wy = 0.; s->avel._value.wz = 0.;
+  s->aacc._value.awx = 0.; s->aacc._value.awy = 0.; s->aacc._value.awz = 0.;
 
   if(odom_state->write(self))
     std::cout << "Error" << std::endl;
