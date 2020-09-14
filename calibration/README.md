@@ -24,11 +24,11 @@ $ cmake ../ -DViconDataStreamSDK_HOME=$DRONE_WS/ViconDataStreamSDK_1.8.0_105615h
             -DVISP_DIR=$VISP_WS/visp-build
 ```
 
-## Usage
+## Usage <a name="usage"></a>
 
 The calibration procedure is similar to the one explained in this [tutorial](https://visp-doc.inria.fr/doxygen/visp-daily/tutorial-calibration-extrinsic.html)
 
-To improve calibration accuracy, you should follow the following steps: <a name="tips"></a>
+To improve calibration accuracy, you should follow the following steps:
 1) Maximize the rotation angle for interstation rotations.
 2) Minimize the distance between the camera lens (T265) center and the calibration block (initial pose reference frame). In our case, don't move the drone too much between 2 acquisitions.
 3) Between 2 different acquisitions, don't move the drone too much.
@@ -44,7 +44,7 @@ $ ./mk-acquire-calib-data
 
 - Before the first acquisition, move the drone randomly with your hand so that tracking confidence increases.
 
-- Move the drone while following the [tips](#tips) and `left` click every time on the white image to acquire new data.
+- Move the drone while following the [steps](#usage) and `left` click every time on the white image to acquire new data.
 
 - Acquire around 9 set of data to have a good accuracy.
 
