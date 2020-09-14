@@ -89,7 +89,7 @@ struct T265_log_s {
   /*"x y z qx qy qz qw "                                                                     \*/
 
 # define T265_log_fmt                                                                       \
-  "%d.%06d"                                                                                  \
+  "%ld.%06ld"                                                                                  \
   " %d.%09d"                                                                                  \
   " %d"                                                                                      \
   T265_logfmt T265_logfmt T265_logfmt T265_logfmt T265_logfmt T265_logfmt              \
