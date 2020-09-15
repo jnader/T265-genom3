@@ -106,7 +106,10 @@ a|.Data structure
  ** `optional< struct ::point >` `center`
  *** `double` `u`
  *** `double` `v`
- ** `struct ::point` `corners_pos[4]`
+ ** `struct ::point` `uv_corners_pos[4]`
+ *** `double` `u`
+ *** `double` `v`
+ ** `struct ::point` `xy_corners_pos[4]`
  *** `double` `u`
  *** `double` `v`
  ** `optional< double >` `area`

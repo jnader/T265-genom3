@@ -1,7 +1,7 @@
 #include "acT265.h"
 #include "codels.h"
 #include "T265_c_types.h"
-
+#include <visp3/core/vpPixelMeterConversion.h>
 
 /* --- Task apriltag_detection ------------------------------------------ */
 vpDetectorAprilTag::vpAprilTagFamily tagFamily = vpDetectorAprilTag::TAG_36h11;
@@ -53,7 +53,6 @@ init_detector(bool detection_enabled,
     vpImageTools::initUndistortMap(cam_left, I_left->I.getWidth(), I_left->I.getHeight(), mapU_left, mapV_left, mapDu_left, mapDv_left);
     vpImageTools::initUndistortMap(cam_right, I_right->I.getWidth(), I_right->I.getHeight(), mapU_right, mapV_right, mapDu_right, mapDv_right);
 
-    vpCameraParameters cam_left = rs_grabber->g.getCameraParameters(RS2_STREAM_FISHEYE, vpCameraParameters::ProjWithKannalaBrandtDistortion, 1);
     cam_undistort.initPersProjWithoutDistortion(cam_left.get_px(), cam_left.get_py(), cam_left.get_u0(), cam_left.get_v0());
 
     detector = new vpDetectorAprilTag(tagFamily);
@@ -175,11 +174,16 @@ loop_detector(bool detection_enabled, bool is_publishing,
         detected_tags->_buffer[i].center._value.v = center.get_j();
 
         // Save corners.
-        detected_tags->_buffer[i].corners_pos._present = true;
+        detected_tags->_buffer[i].uv_corners_pos._present = true;
+        detected_tags->_buffer[i].xy_corners_pos._present = true;
         for(int j = 0; j < 4; j++)
         {
-          detected_tags->_buffer[i].corners_pos._value[j].u = tag_corners[i][j].get_i();
-          detected_tags->_buffer[i].corners_pos._value[j].v = tag_corners[i][j].get_j();
+          detected_tags->_buffer[i].uv_corners_pos._value[j].u = tag_corners[i][j].get_i();
+          detected_tags->_buffer[i].uv_corners_pos._value[j].v = tag_corners[i][j].get_j();
+
+          vpPixelMeterConversion::convertPoint(cam_undistort, tag_corners[i][j].get_i(), tag_corners[i][j].get_j(), 
+                                              detected_tags->_buffer[i].xy_corners_pos._value[j].u,
+                                              detected_tags->_buffer[i].xy_corners_pos._value[j].v);
         }
 
         // Save apriltag's pose.

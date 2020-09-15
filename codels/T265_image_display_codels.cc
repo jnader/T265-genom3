@@ -105,7 +105,7 @@ refresh_display(bool is_publishing, bool display_enabled,
         // Display corners.
         for(int j = 0; j < 4; j++)
         {
-          vpDisplay::displayCross(I_left_undistorted->I, vpImagePoint(detected_tags->_buffer[i].corners_pos._value[j].u,detected_tags->_buffer[i].corners_pos._value[j].v), 20, vpColor::green, 2);
+          vpDisplay::displayCross(I_left_undistorted->I, vpImagePoint(detected_tags->_buffer[i].uv_corners_pos._value[j].u,detected_tags->_buffer[i].uv_corners_pos._value[j].v), 20, vpColor::green, 2);
         }
 
         // Display pose.
