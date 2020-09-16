@@ -42,7 +42,7 @@ interface apriltag {
     optional<point> center;        /* Tag's center */
 
     optional<corners> uv_corners_pos;  /* Tag's corners position in pixels */
-    optional<corners> xy_corners_pos;  /* Tag's corners position in meters */
+
     optional<double> area;          /* Tag's area */
     optional<string<128> > message;       /* Tag's message */
   };

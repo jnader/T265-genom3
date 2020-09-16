@@ -109,9 +109,6 @@ a|.Data structure
  ** `struct ::point` `uv_corners_pos[4]`
  *** `double` `u`
  *** `double` `v`
- ** `struct ::point` `xy_corners_pos[4]`
- *** `double` `u`
- *** `double` `v`
  ** `optional< double >` `area`
  ** `optional< string<128> >` `message`
 
@@ -231,34 +228,6 @@ Stop logging
 
 == Tasks
 
-[[grabber]]
-=== grabber
-
-[role="small", width="50%", float="right", cols="1"]
-|===
-a|.Context
-[disc]
-  * Free running
-|===
-
-This task will initialize grabbing mechanism used to retrieve data from T265 sensor.
-
-'''
-
-[[image_display]]
-=== image_display
-
-[role="small", width="50%", float="right", cols="1"]
-|===
-a|.Context
-[disc]
-  * Frequency 30.3030303030303 _Hz_
-|===
-
-This task is used to display images.
-
-'''
-
 [[pose_port_refresh]]
 === pose_port_refresh
 
@@ -270,22 +239,7 @@ a|.Context
 * Updates port `<<odom_state>>`
 |===
 
-This task will create and launch the interface with Intel RealSense T265 device.
 This task is used to refresh pose output port at 200Hz.
-
-'''
-
-[[undistort_images]]
-=== undistort_images
-
-[role="small", width="50%", float="right", cols="1"]
-|===
-a|.Context
-[disc]
-  * Frequency 30.3030303030303 _Hz_
-|===
-
-Task for undistorting images.
 
 '''
 

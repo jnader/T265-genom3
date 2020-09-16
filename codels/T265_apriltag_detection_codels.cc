@@ -175,15 +175,10 @@ loop_detector(bool detection_enabled, bool is_publishing,
 
         // Save corners.
         detected_tags->_buffer[i].uv_corners_pos._present = true;
-        detected_tags->_buffer[i].xy_corners_pos._present = true;
         for(int j = 0; j < 4; j++)
         {
           detected_tags->_buffer[i].uv_corners_pos._value[j].u = tag_corners[i][j].get_i();
           detected_tags->_buffer[i].uv_corners_pos._value[j].v = tag_corners[i][j].get_j();
-
-          vpPixelMeterConversion::convertPoint(cam_undistort, tag_corners[i][j].get_i(), tag_corners[i][j].get_j(), 
-                                              detected_tags->_buffer[i].xy_corners_pos._value[j].u,
-                                              detected_tags->_buffer[i].xy_corners_pos._value[j].v);
         }
 
         // Save apriltag's pose.
