@@ -61,7 +61,7 @@ component T265
         tags detected_tags;
 
         /* Variables */
-        boolean is_publishing, display_enabled, detection_enabled;
+        boolean is_publishing, pose_enabled, display_enabled, detection_enabled;
         short nb_display_coefficient;
         vp_homogeneous_matrix pre_tf, post_tf;
 
@@ -102,6 +102,20 @@ component T265
         codel set_display_frequency_codel(in frequency, out nb_display_coefficient, out display_enabled);
     };
 
+    function enable_pose()
+    {
+        doc "Enable publishing pose data.";
+
+        codel enable_pose_codel(out pose_enabled);
+    };
+
+    function disable_pose()
+    {
+        doc "Disable pose data.";
+
+        codel disable_pose_codel(out pose_enabled);
+    };
+
     function enable_detection()
     {
         doc "Enable detection. (AprilTag, ...)";
@@ -139,7 +153,7 @@ component T265
 
         codel<start> init_port(out ::ids, out odom_state)
             yield loop;
-        codel<loop> refresh_pose(out log, in is_publishing, in rs_grabber, in poseref_odo_sensor, in pre_tf, in post_tf, out odom_state)
+        codel<loop> refresh_pose(out log, in pose_enabled, in rs_grabber, in poseref_odo_sensor, in pre_tf, in post_tf, out odom_state)
             yield pause::loop, stop;
         codel<stop> stop_pose_display(out poseref_odo_sensor, out pre_tf, out post_tf, out log)
             yield ether;

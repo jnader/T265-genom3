@@ -229,6 +229,34 @@ set_display_frequency_codel(double frequency,
 }
 
 
+/* --- Function enable_pose --------------------------------------------- */
+
+/** Codel enable_pose_codel of function enable_pose.
+ *
+ * Returns genom_ok.
+ */
+genom_event
+enable_pose_codel(bool *pose_enabled, const genom_context self)
+{
+  *pose_enabled = true;
+  return genom_ok;
+}
+
+
+/* --- Function disable_pose -------------------------------------------- */
+
+/** Codel disable_pose_codel of function disable_pose.
+ *
+ * Returns genom_ok.
+ */
+genom_event
+disable_pose_codel(bool *pose_enabled, const genom_context self)
+{
+  *pose_enabled = false;
+  return genom_ok;
+}
+
+
 /* --- Function enable_detection ---------------------------------------- */
 
 /** Codel enable_detection_codel of function enable_detection.

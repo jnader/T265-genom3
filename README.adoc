@@ -179,6 +179,22 @@ Set display frequency. Maximum possible display frequency is 30Hz. 0 will disabl
 
 '''
 
+[[enable_pose]]
+=== enable_pose (function)
+
+
+Enable publishing pose data.
+
+'''
+
+[[disable_pose]]
+=== disable_pose (function)
+
+
+Disable pose data.
+
+'''
+
 [[enable_detection]]
 === enable_detection (function)
 

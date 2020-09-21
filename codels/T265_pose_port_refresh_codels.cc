@@ -23,7 +23,8 @@ genom_event
 init_port(T265_ids *ids, const T265_odom_state *odom_state,
           const genom_context self)
 {
-  ids->is_publishing = false; // Wait for it to be true to switch to loop codel.
+  ids->pose_enabled = false; // Wait for it to be true to switch to loop codel.
+  ids->is_publishing = false;
   ids->rs_grabber = NULL;
   ids->I_left = NULL;
   ids->I_right = NULL;
@@ -103,7 +104,7 @@ init_port(T265_ids *ids, const T265_odom_state *odom_state,
  * Yields to T265_pause_loop, T265_stop.
  */
 genom_event
-refresh_pose(T265_log_s **log, bool is_publishing,
+refresh_pose(T265_log_s **log, bool pose_enabled,
              const T265_realsense_grabber *rs_grabber,
              const T265_vp_odometry *poseref_odo_sensor,
              const T265_vp_homogeneous_matrix *pre_tf,
@@ -111,7 +112,7 @@ refresh_pose(T265_log_s **log, bool is_publishing,
              const T265_odom_state *odom_state,
              const genom_context self)
 {
-  if(is_publishing)
+  if(pose_enabled)
   {
     // Apply transformations on pose/velocity/acceleration.
     // Pose
