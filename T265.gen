@@ -128,6 +128,13 @@ component T265
         codel disable_detection_codel(out detection_enabled);
     };
 
+    function get_tags_ID(out sequence<short> tags_id)
+    {
+        doc "List all detected tags IDs.";
+
+        codel get_tags_ID_codel(in detected_tags, out tags_id);
+    };
+
 /* -------------------LOGGING-----------------------------*/
     function log(in string<64> path = "/tmp/T265.log": ": Log file name",
                 in unsigned long decimation = 1: ": Reduced logging frequency") {

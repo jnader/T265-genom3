@@ -211,6 +211,21 @@ Disable detection.
 
 '''
 
+[[get_tags_ID]]
+=== get_tags_ID (function)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Outputs
+[disc]
+ * `sequence< short >` `tags_id`
+
+|===
+
+List all detected tags IDs.
+
+'''
+
 [[log]]
 === log (function)
 

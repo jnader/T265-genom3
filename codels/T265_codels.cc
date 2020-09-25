@@ -287,6 +287,53 @@ disable_detection_codel(bool *detection_enabled,
 }
 
 
+/* --- Function get_tags_ID --------------------------------------------- */
+
+/** Codel get_tags_ID_codel of function get_tags_ID.
+ *
+ * Returns genom_ok.
+ */
+genom_event
+get_tags_ID_codel(const T265_tags *detected_tags,
+                  sequence_short *tags_id, const genom_context self)
+{
+  if(detected_tags->_buffer == NULL) // No tags detected
+  {
+    tags_id->_maximum = 0;
+    tags_id->_length = 0;
+    delete [] tags_id->_buffer;
+    tags_id->_buffer = NULL;
+  }
+
+  else
+  {
+    if(tags_id->_length != 0) // Releasing already existing buffer.
+    {
+      delete [] tags_id->_buffer;
+      tags_id->_buffer = NULL;
+    }
+
+    tags_id->_maximum = detected_tags->_maximum;
+    tags_id->_length = 0;
+
+    if(tags_id->_buffer == NULL)
+    {
+      tags_id->_buffer = new int16_t[tags_id->_maximum];
+    }
+
+    for(int i = 0; i < tags_id->_maximum; i++)
+    {
+      tags_id->_buffer[i] = detected_tags->_buffer[i].id;
+      tags_id->_length++;
+    }
+  }
+  
+
+
+  return genom_ok;
+}
+
+
 /* --- Function log ----------------------------------------------------- */
 
 /** Codel T265_log of function log.
