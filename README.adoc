@@ -118,6 +118,19 @@ a|.Data structure
 
 == Services
 
+[[set_tag_size]]
+=== set_tag_size (attribute)
+
+[role="small", width="50%", float="right", cols="1"]
+|===
+a|.Inputs
+[disc]
+ * `double` `tag_size`
+
+|===
+
+'''
+
 [[start_publishing]]
 === start_publishing (function)
 

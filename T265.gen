@@ -69,6 +69,8 @@ component T265
         log_s log;
     };
 
+    attribute set_tag_size(in tag_size);
+
 /******************** FUNCTIONS ********************/
     function start_publishing()
     {
