@@ -158,7 +158,7 @@ component T265
     {
         doc "This task is used to refresh pose output port at 200Hz.";
 
-        period 5ms;
+        period 10ms;
 
         codel<start> init_port(out ::ids, out odom_state)
             yield loop;
