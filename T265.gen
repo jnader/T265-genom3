@@ -188,7 +188,7 @@ component T265
 
         period 33ms;
 
-        codel<start> init_display(in display_enabled, in I_left, in I_right, in I_left_undistorted, in I_right_undistorted, in rs_grabber)
+        codel<start> init_display(in is_publishing, in display_enabled, in I_left, in I_right, in I_left_undistorted, in I_right_undistorted, in rs_grabber)
             yield pause::start, loop;
         codel<loop> refresh_display(in is_publishing, in display_enabled, in image_count, in nb_display_coefficient, in I_left, in I_right, in I_left_undistorted, in I_right_undistorted, in detection_enabled, in detected_tags)
             yield pause::loop, stop;

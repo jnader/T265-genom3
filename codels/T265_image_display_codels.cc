@@ -3,6 +3,9 @@
 #include "T265_c_types.h"
 #include "codels.h"
 
+#include <visp3/io/vpImageIo.h>
+#include <visp3/core/vpIoTools.h>
+
 /* --- Task image_display ----------------------------------------------- */
 vpDisplayX display_left;  // Left image.
 vpDisplayX display_right; // Right image.
@@ -15,32 +18,43 @@ vpHomogeneousMatrix cMo;
 
 vpCameraParameters left_cam_undistort;
 
+std::string ss;
+unsigned long counter;
+
 /** Codel init_display of task image_display.
  *
  * Triggered by T265_start.
  * Yields to T265_pause_start, T265_loop.
  */
 genom_event
-init_display(bool display_enabled, const T265_vp_image *I_left,
-             const T265_vp_image *I_right,
+init_display(bool is_publishing, bool display_enabled,
+             const T265_vp_image *I_left, const T265_vp_image *I_right,
              const T265_vp_image *I_left_undistorted,
              const T265_vp_image *I_right_undistorted,
              const T265_realsense_grabber *rs_grabber,
              const genom_context self)
 {
-  if(display_enabled)
+  // Create a directory in tmp to save left undistorted image.
+  vpIoTools::makeDirectory("/tmp/T265");
+
+  if(is_publishing) // display_enabled)
   {
-    display_left.init(const_cast<vpImage<unsigned char>&>(I_left->I), 10, 10, "Left image");
-    display_right.init(const_cast<vpImage<unsigned char>&>(I_right->I), static_cast<int>(I_left->I.getWidth()) + 80, 10, "Right image"); // Right
+    counter = 0;
 
-    if(I_left_undistorted != NULL)
-      display_left_undist.init(const_cast<vpImage<unsigned char>&>(I_left_undistorted->I), 2*static_cast<int>(I_left->I.getWidth()/2), 10, "Left undistorted image");
-    if(I_right_undistorted != NULL)
-      display_right_undist.init(const_cast<vpImage<unsigned char>&>(I_right_undistorted->I), 3*static_cast<int>(I_right->I.getWidth()/2), 10, "Right undistorted image");
+    if(display_enabled)
+    {
+      display_left.init(const_cast<vpImage<unsigned char>&>(I_left->I), 10, 10, "Left image");
+      display_right.init(const_cast<vpImage<unsigned char>&>(I_right->I), static_cast<int>(I_left->I.getWidth()) + 80, 10, "Right image"); // Right
 
-    // cam_undistort used for frame display.
-    vpCameraParameters cam_left = rs_grabber->g.getCameraParameters(RS2_STREAM_FISHEYE, vpCameraParameters::ProjWithKannalaBrandtDistortion, 1);
-    left_cam_undistort.initPersProjWithoutDistortion(cam_left.get_px(), cam_left.get_py(), cam_left.get_u0(), cam_left.get_v0());
+      if(I_left_undistorted != NULL)
+        display_left_undist.init(const_cast<vpImage<unsigned char>&>(I_left_undistorted->I), 2*static_cast<int>(I_left->I.getWidth()/2), 10, "Left undistorted image");
+      if(I_right_undistorted != NULL)
+        display_right_undist.init(const_cast<vpImage<unsigned char>&>(I_right_undistorted->I), 3*static_cast<int>(I_right->I.getWidth()/2), 10, "Right undistorted image");
+
+      // cam_undistort used for frame display.
+      vpCameraParameters cam_left = rs_grabber->g.getCameraParameters(RS2_STREAM_FISHEYE, vpCameraParameters::ProjWithKannalaBrandtDistortion, 1);
+      left_cam_undistort.initPersProjWithoutDistortion(cam_left.get_px(), cam_left.get_py(), cam_left.get_u0(), cam_left.get_v0());
+    }
 
     return T265_loop;
   }
@@ -130,6 +144,19 @@ refresh_display(bool is_publishing, bool display_enabled,
       vpDisplay::flush(I_left_undistorted->I);
     if(I_right_undistorted != NULL)
       vpDisplay::flush(I_right_undistorted->I);
+  }
+
+  // Saving images if display disabled.
+  if(is_publishing && !display_enabled && (image_count % nb_display_coefficient == 0))
+  {
+    if(I_left_undistorted != NULL)
+    {
+      ss.clear();
+      ss = "/tmp/T265/Left_undist_" + std::to_string(counter++) + ".jpg";
+      double start = vpTime::measureTimeMs();
+      vpImageIo::write(I_left_undistorted->I, ss);
+      std::cout << vpTime::measureTimeMs() - start << std::endl;
+    }
   }
 
   return T265_pause_loop;
