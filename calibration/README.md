@@ -17,7 +17,7 @@ This makes available `$DRONE_WS/ViconDataStreamSDK_1.8.0_105615h/18.04/Linux64/b
 
 ```
 $ cd $DRONE_WS
-$ git clone https://gitlab.inria.fr/lagadic/uavvo-genom3.git
+$ git clone https://gitlab.inria.fr/jnader/t265-genom3.git
 $ cd T265/calibration
 $ mkdir build; cd build
 $ cmake ../ -DViconDataStreamSDK_HOME=$DRONE_WS/ViconDataStreamSDK_1.8.0_105615h/18.04/Linux64 \
